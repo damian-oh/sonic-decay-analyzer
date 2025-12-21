@@ -1,0 +1,45 @@
+# .NET / Visual Studio build artifacts
+bin/
+obj/
+[Log]
+[Tt]est[Rr]esult*/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# MAUI / Mobile specific
+.vs/
+AppPackages/
+BundleArtifacts/
+*.apk
+*.aab
+*.ipa
+
+# Python virtual environment and cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.venv
+env/
+build/
+dist/
+*.egg-info/
+
+# SQLite databases (Excluded for security and data integrity)
+# Track the schema (.sql), but exclude the actual data (.db)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Rider / JetBrains (Optional)
+.idea/
+*.sln.iml
