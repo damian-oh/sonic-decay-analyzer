@@ -25,6 +25,10 @@ namespace SonicDecay.App
             builder.Services.AddTransient<IStringBaselineRepository, StringBaselineRepository>();
             builder.Services.AddTransient<IStringSetRepository, StringSetRepository>();
 
+            // Register audio capture services
+            builder.Services.AddSingleton<IPermissionService, PermissionService>();
+            builder.Services.AddSingleton<IAudioCaptureService, AudioCaptureService>();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

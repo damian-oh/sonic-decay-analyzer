@@ -19,6 +19,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<!-- Required for audio buffer pointer access in iOS/Windows implementations -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
 		<!-- Display name -->
 		<ApplicationTitle>SonicDecay.App</ApplicationTitle>
