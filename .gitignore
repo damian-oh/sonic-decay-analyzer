@@ -43,3 +43,6 @@ Thumbs.db
 # Rider / JetBrains (Optional)
 .idea/
 *.sln.iml
+
+# Claude Code local settings
+.claude/
