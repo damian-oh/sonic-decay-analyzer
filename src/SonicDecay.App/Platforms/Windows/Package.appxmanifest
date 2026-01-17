@@ -41,6 +41,8 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <!-- Microphone capability for audio capture -->
+    <DeviceCapability Name="microphone" />
   </Capabilities>
 
 </Package>
