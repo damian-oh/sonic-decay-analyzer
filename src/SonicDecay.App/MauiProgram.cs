@@ -32,6 +32,9 @@ namespace SonicDecay.App
             // Register spectral analysis service (Python engine interop)
             builder.Services.AddSingleton<IAnalysisService, AnalysisService>();
 
+            // Register measurement coordination service (analysis + persistence)
+            builder.Services.AddTransient<IMeasurementService, MeasurementService>();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
