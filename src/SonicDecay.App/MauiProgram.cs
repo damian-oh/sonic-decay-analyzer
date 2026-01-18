@@ -1,11 +1,20 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SonicDecay.App.Services.Implementations;
 using SonicDecay.App.Services.Interfaces;
+using SonicDecay.App.ViewModels;
+using SonicDecay.App.Views;
 
 namespace SonicDecay.App
 {
+    /// <summary>
+    /// MAUI application builder and dependency injection configuration.
+    /// </summary>
     public static class MauiProgram
     {
+        /// <summary>
+        /// Creates and configures the MAUI application.
+        /// </summary>
+        /// <returns>The configured MauiApp instance.</returns>
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -34,6 +43,14 @@ namespace SonicDecay.App
 
             // Register measurement coordination service (analysis + persistence)
             builder.Services.AddTransient<IMeasurementService, MeasurementService>();
+
+            // Register ViewModels
+            builder.Services.AddTransient<MainViewModel>();
+            builder.Services.AddTransient<StringInputViewModel>();
+
+            // Register Views (with ViewModel injection)
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<StringInputPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();
