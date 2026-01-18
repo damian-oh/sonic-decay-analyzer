@@ -140,6 +140,118 @@
                     </Grid>
                 </Frame>
 
+                <!-- Replacement Recommendation -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                       Padding="16"
+                       CornerRadius="12"
+                       BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                       IsVisible="{Binding HasRecommendation}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Replacement Recommendation"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                            <Button Grid.Column="1"
+                                    Text="↻"
+                                    WidthRequest="36"
+                                    HeightRequest="36"
+                                    FontSize="16"
+                                    Padding="0"
+                                    Command="{Binding RefreshRecommendationCommand}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource Primary}"
+                                    SemanticProperties.Hint="Refresh recommendation"/>
+                        </Grid>
+
+                        <!-- Urgency Badge -->
+                        <Frame BackgroundColor="{Binding RecommendationUrgencyColor}"
+                               Padding="12,8"
+                               CornerRadius="8"
+                               BorderColor="Transparent"
+                               HorizontalOptions="Start">
+                            <Label Text="{Binding RecommendationUrgencyText}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                        </Frame>
+
+                        <!-- Recommendation Message -->
+                        <Label Text="{Binding Recommendation.Message}"
+                               FontSize="14"
+                               LineBreakMode="WordWrap"/>
+
+                        <!-- Prediction Details Grid -->
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*,*" RowSpacing="8" ColumnSpacing="8">
+                            <!-- Hours Remaining -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0">
+                                <Label Text="Play Hours Left"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label Text="{Binding EstimatedHoursRemainingText}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Projected Date -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="1">
+                                <Label Text="Replace By"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label Text="{Binding ProjectedReplacementDateText}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Confidence -->
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="2">
+                                <Label Text="Confidence"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label Text="{Binding RecommendationConfidenceText}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Health Score -->
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="0">
+                                <Label Text="Health Score"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label Text="{Binding Recommendation.HealthScore, StringFormat='{0:F0}/100'}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Decay Rate -->
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="1">
+                                <Label Text="Decay Rate"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label Text="{Binding Recommendation.DecayRatePerHour, StringFormat='{0:F2}%/hr'}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+
+                            <!-- Measurements -->
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="2">
+                                <Label Text="Measurements"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label Text="{Binding Recommendation.MeasurementCount}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Loading Indicator -->
+                        <ActivityIndicator IsRunning="{Binding IsLoadingRecommendation}"
+                                           IsVisible="{Binding IsLoadingRecommendation}"
+                                           Color="{StaticResource Primary}"
+                                           HeightRequest="20"/>
+                    </VerticalStackLayout>
+                </Frame>
+
                 <!-- Decay History -->
                 <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                        Padding="16"
