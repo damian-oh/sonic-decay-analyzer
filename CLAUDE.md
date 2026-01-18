@@ -194,16 +194,16 @@ StringSet (1) ──────< StringBaseline (6)
 - `Schema.sql` validation script
 - Unit tests for CRUD operations
 
-### Phase 2: Audio Capture Service
-**Status**: In progress  
+### Phase 2: Audio Capture Service ✓
+**Status**: Completed  
 **Deliverables**:
 - `IPermissionService` for async microphone access
 - `IAudioCaptureService` capturing PCM at 48kHz/24-bit
 - RMS threshold trigger for automatic analysis start
 - Platform-specific implementations (iOS/Android/Windows)
 
-### Phase 3: Python Engine Integration
-**Status**: Planned  
+### Phase 3: Python Engine Integration ✓
+**Status**: Completed  
 **Deliverables**:
 - FFT implementation with windowing (Hamming/Hann)
 - Spectral Centroid calculation: `Σ(f[i] × magnitude[i]) / Σ(magnitude[i])`
@@ -211,16 +211,16 @@ StringSet (1) ──────< StringBaseline (6)
 - C#↔Python bridge with error handling
 - Automated metric persistence to `MeasurementLog`
 
-### Phase 4: MVVM Presentation Layer
-**Status**: Planned  
+### Phase 4: MVVM Presentation Layer ✓
+**Status**: Completed  
 **Deliverables**:
 - `MainViewModel` with real-time analysis binding
 - `StringInputView` with brand/model selection + custom gauges
 - Data visualization (decay curve charts)
 - Health percentage display with color-coded indicators
 
-### Phase 5: Predictive Maintenance Algorithm
-**Status**: Planned  
+### Phase 5: Predictive Maintenance Algorithm ✓
+**Status**: Completed  
 **Deliverables**:
 - Decay rate calculation: `(Baseline - Current) / Baseline × 100`
 - Replacement recommendation engine
