@@ -42,4 +42,24 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- Health Indicator Colors (for decay percentage visualization) -->
+    <Color x:Key="HealthExcellent">#22c55e</Color>  <!-- Green: 0-15% decay -->
+    <Color x:Key="HealthGood">#eab308</Color>       <!-- Yellow: 15-30% decay -->
+    <Color x:Key="HealthFair">#f97316</Color>       <!-- Orange: 30-50% decay -->
+    <Color x:Key="HealthReplace">#ef4444</Color>    <!-- Red: 50%+ decay -->
+
+    <SolidColorBrush x:Key="HealthExcellentBrush" Color="{StaticResource HealthExcellent}"/>
+    <SolidColorBrush x:Key="HealthGoodBrush" Color="{StaticResource HealthGood}"/>
+    <SolidColorBrush x:Key="HealthFairBrush" Color="{StaticResource HealthFair}"/>
+    <SolidColorBrush x:Key="HealthReplaceBrush" Color="{StaticResource HealthReplace}"/>
+
+    <!-- Analysis UI Colors -->
+    <Color x:Key="AnalysisBackground">#1a1a2e</Color>
+    <Color x:Key="AnalysisAccent">#4361ee</Color>
+    <Color x:Key="MeterBackground">#2d2d44</Color>
+
+    <SolidColorBrush x:Key="AnalysisBackgroundBrush" Color="{StaticResource AnalysisBackground}"/>
+    <SolidColorBrush x:Key="AnalysisAccentBrush" Color="{StaticResource AnalysisAccent}"/>
+    <SolidColorBrush x:Key="MeterBackgroundBrush" Color="{StaticResource MeterBackground}"/>
 </ResourceDictionary>
