@@ -44,6 +44,10 @@ namespace SonicDecay.App
             // Register measurement coordination service (analysis + persistence)
             builder.Services.AddTransient<IMeasurementService, MeasurementService>();
 
+            // Register predictive maintenance services (Phase 5)
+            builder.Services.AddTransient<IRecommendationService, RecommendationService>();
+            builder.Services.AddSingleton<IPythonEnginePool, PythonEnginePool>();
+
             // Register ViewModels
             builder.Services.AddTransient<MainViewModel>();
             builder.Services.AddTransient<StringInputViewModel>();
