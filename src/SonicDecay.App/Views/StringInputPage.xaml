@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SonicDecay.App.ViewModels"
+             x:Class="SonicDecay.App.Views.StringInputPage"
+             x:DataType="vm:StringInputViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView Padding="16">
+        <VerticalStackLayout Spacing="16">
+
+            <!-- Brand and Model Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="String Information"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Brand"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Entry Text="{Binding Brand}"
+                               Placeholder="e.g., Elixir, D'Addario, Ernie Ball"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Model"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Entry Text="{Binding Model}"
+                               Placeholder="e.g., Nanoweb, EXL110, Regular Slinky"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Gauge Presets -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Quick Gauge Presets"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Start">
+                        <Button Text="Extra Light"
+                                Margin="4"
+                                Padding="12,8"
+                                FontSize="12"
+                                Command="{Binding ApplyPresetCommand}"
+                                CommandParameter="extralight"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                        <Button Text="Light"
+                                Margin="4"
+                                Padding="12,8"
+                                FontSize="12"
+                                Command="{Binding ApplyPresetCommand}"
+                                CommandParameter="light"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"/>
+                        <Button Text="Medium"
+                                Margin="4"
+                                Padding="12,8"
+                                FontSize="12"
+                                Command="{Binding ApplyPresetCommand}"
+                                CommandParameter="medium"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                        <Button Text="Heavy"
+                                Margin="4"
+                                Padding="12,8"
+                                FontSize="12"
+                                Command="{Binding ApplyPresetCommand}"
+                                CommandParameter="heavy"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                        <Button Text="Jazz"
+                                Margin="4"
+                                Padding="12,8"
+                                FontSize="12"
+                                Command="{Binding ApplyPresetCommand}"
+                                CommandParameter="jazz"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Custom Gauges -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="String Gauges (inches)"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+                        <Label Grid.Column="1"
+                               Text="{Binding GaugeSummary}"
+                               FontSize="14"
+                               TextColor="{StaticResource Primary}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+
+                    <!-- String 1 - High E -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Label Text="High E (1)"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Column="1"
+                               Text="{Binding GaugeE1, StringFormat='{0:F3}'}"
+                               Keyboard="Numeric"
+                               Placeholder="0.010"/>
+                    </Grid>
+
+                    <!-- String 2 - B -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Label Text="B (2)"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Column="1"
+                               Text="{Binding GaugeB2, StringFormat='{0:F3}'}"
+                               Keyboard="Numeric"
+                               Placeholder="0.013"/>
+                    </Grid>
+
+                    <!-- String 3 - G -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Label Text="G (3)"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Column="1"
+                               Text="{Binding GaugeG3, StringFormat='{0:F3}'}"
+                               Keyboard="Numeric"
+                               Placeholder="0.017"/>
+                    </Grid>
+
+                    <!-- String 4 - D -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Label Text="D (4)"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Column="1"
+                               Text="{Binding GaugeD4, StringFormat='{0:F3}'}"
+                               Keyboard="Numeric"
+                               Placeholder="0.026"/>
+                    </Grid>
+
+                    <!-- String 5 - A -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Label Text="A (5)"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Column="1"
+                               Text="{Binding GaugeA5, StringFormat='{0:F3}'}"
+                               Keyboard="Numeric"
+                               Placeholder="0.036"/>
+                    </Grid>
+
+                    <!-- String 6 - Low E -->
+                    <Grid ColumnDefinitions="80,*" ColumnSpacing="12">
+                        <Label Text="Low E (6)"
+                               FontSize="14"
+                               VerticalOptions="Center"/>
+                        <Entry Grid.Column="1"
+                               Text="{Binding GaugeE6, StringFormat='{0:F3}'}"
+                               Keyboard="Numeric"
+                               Placeholder="0.046"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   FontSize="12"
+                   TextColor="{StaticResource HealthReplace}"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"/>
+
+            <!-- Action Buttons -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Button Text="Cancel"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+
+                <Button Grid.Column="1"
+                        Text="{Binding IsEditing, Converter={StaticResource SaveButtonTextConverter}}"
+                        Command="{Binding SaveCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"/>
+            </Grid>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource Primary}"
+                               HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
