@@ -11,7 +11,21 @@ namespace SonicDecay.App.Services.Implementations
     {
         private readonly IDatabaseService _databaseService;
         private readonly IStringSetRepository _stringSetRepository;
+        private readonly IStringBaselineRepository _baselineRepository;
         private bool _isSeeded;
+
+        /// <summary>
+        /// Standard tuning fundamental frequencies for each string (Hz).
+        /// </summary>
+        private static readonly double[] StandardTuningFrequencies =
+        {
+            329.63, // E4 - High E (string 1)
+            246.94, // B3 (string 2)
+            196.00, // G3 (string 3)
+            146.83, // D3 (string 4)
+            110.00, // A2 (string 5)
+            82.41   // E2 - Low E (string 6)
+        };
 
         /// <inheritdoc />
         public bool IsSeeded => _isSeeded;
@@ -21,12 +35,15 @@ namespace SonicDecay.App.Services.Implementations
         /// </summary>
         /// <param name="databaseService">The database service for direct connection access.</param>
         /// <param name="stringSetRepository">The string set repository for data operations.</param>
+        /// <param name="baselineRepository">The baseline repository for creating string baselines.</param>
         public SeedDataService(
             IDatabaseService databaseService,
-            IStringSetRepository stringSetRepository)
+            IStringSetRepository stringSetRepository,
+            IStringBaselineRepository baselineRepository)
         {
             _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
             _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
+            _baselineRepository = baselineRepository ?? throw new ArgumentNullException(nameof(baselineRepository));
         }
 
         /// <inheritdoc />
@@ -63,6 +80,7 @@ namespace SonicDecay.App.Services.Implementations
 
         /// <summary>
         /// Seeds all preset string sets into the database.
+        /// Creates 6 StringBaselines per StringSet for each guitar string.
         /// </summary>
         private async Task SeedPresetsAsync()
         {
@@ -71,6 +89,23 @@ namespace SonicDecay.App.Services.Implementations
             foreach (var preset in presets)
             {
                 await _stringSetRepository.CreateAsync(preset);
+
+                // Create 6 baselines for each string set (one per guitar string)
+                var baselines = new List<StringBaseline>();
+                for (int i = 1; i <= 6; i++)
+                {
+                    baselines.Add(new StringBaseline
+                    {
+                        SetId = preset.Id,
+                        StringNumber = i,
+                        FundamentalFreq = StandardTuningFrequencies[i - 1],
+                        InitialCentroid = 0, // Will be set when baseline is established
+                        InitialHighRatio = 0,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+
+                await _baselineRepository.CreateBatchAsync(baselines);
             }
         }
 

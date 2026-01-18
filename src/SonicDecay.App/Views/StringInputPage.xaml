@@ -60,40 +60,40 @@
                                 FontSize="12"
                                 Command="{Binding ApplyPresetCommand}"
                                 CommandParameter="extralight"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                BackgroundColor="{Binding SelectedPreset, Converter={StaticResource PresetToColorConverter}, ConverterParameter=extralight}"
+                                TextColor="{Binding SelectedPreset, Converter={StaticResource PresetToTextColorConverter}, ConverterParameter=extralight}"/>
                         <Button Text="Light"
                                 Margin="4"
                                 Padding="12,8"
                                 FontSize="12"
                                 Command="{Binding ApplyPresetCommand}"
                                 CommandParameter="light"
-                                BackgroundColor="{StaticResource Primary}"
-                                TextColor="White"/>
+                                BackgroundColor="{Binding SelectedPreset, Converter={StaticResource PresetToColorConverter}, ConverterParameter=light}"
+                                TextColor="{Binding SelectedPreset, Converter={StaticResource PresetToTextColorConverter}, ConverterParameter=light}"/>
                         <Button Text="Medium"
                                 Margin="4"
                                 Padding="12,8"
                                 FontSize="12"
                                 Command="{Binding ApplyPresetCommand}"
                                 CommandParameter="medium"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                BackgroundColor="{Binding SelectedPreset, Converter={StaticResource PresetToColorConverter}, ConverterParameter=medium}"
+                                TextColor="{Binding SelectedPreset, Converter={StaticResource PresetToTextColorConverter}, ConverterParameter=medium}"/>
                         <Button Text="Heavy"
                                 Margin="4"
                                 Padding="12,8"
                                 FontSize="12"
                                 Command="{Binding ApplyPresetCommand}"
                                 CommandParameter="heavy"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                BackgroundColor="{Binding SelectedPreset, Converter={StaticResource PresetToColorConverter}, ConverterParameter=heavy}"
+                                TextColor="{Binding SelectedPreset, Converter={StaticResource PresetToTextColorConverter}, ConverterParameter=heavy}"/>
                         <Button Text="Jazz"
                                 Margin="4"
                                 Padding="12,8"
                                 FontSize="12"
                                 Command="{Binding ApplyPresetCommand}"
                                 CommandParameter="jazz"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray600}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                                BackgroundColor="{Binding SelectedPreset, Converter={StaticResource PresetToColorConverter}, ConverterParameter=jazz}"
+                                TextColor="{Binding SelectedPreset, Converter={StaticResource PresetToTextColorConverter}, ConverterParameter=jazz}"/>
                     </FlexLayout>
                 </VerticalStackLayout>
             </Frame>

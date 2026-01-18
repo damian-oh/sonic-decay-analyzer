@@ -167,4 +167,76 @@ namespace SonicDecay.App.Converters
             throw new NotSupportedException();
         }
     }
+
+    /// <summary>
+    /// Converts SelectedPreset to background color for preset buttons.
+    /// Returns Primary color if parameter matches value, otherwise Gray.
+    /// </summary>
+    public class PresetToColorConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            var selectedPreset = value as string;
+            var buttonPreset = parameter as string;
+
+            if (string.Equals(selectedPreset, buttonPreset, StringComparison.OrdinalIgnoreCase))
+            {
+                // Selected - use Primary color
+                return Application.Current?.Resources.TryGetValue("Primary", out var primaryColor) == true
+                    ? primaryColor
+                    : Color.FromArgb("#512BD4");
+            }
+
+            // Not selected - use Gray based on theme
+            if (Application.Current?.RequestedTheme == AppTheme.Dark)
+            {
+                return Application.Current?.Resources.TryGetValue("Gray600", out var darkGray) == true
+                    ? darkGray
+                    : Color.FromArgb("#404040");
+            }
+
+            return Application.Current?.Resources.TryGetValue("Gray100", out var lightGray) == true
+                ? lightGray
+                : Color.FromArgb("#F0F0F0");
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    /// <summary>
+    /// Converts SelectedPreset to text color for preset buttons.
+    /// Returns White if parameter matches value, otherwise theme-appropriate color.
+    /// </summary>
+    public class PresetToTextColorConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            var selectedPreset = value as string;
+            var buttonPreset = parameter as string;
+
+            if (string.Equals(selectedPreset, buttonPreset, StringComparison.OrdinalIgnoreCase))
+            {
+                // Selected - use White text
+                return Colors.White;
+            }
+
+            // Not selected - use theme-appropriate text color
+            if (Application.Current?.RequestedTheme == AppTheme.Dark)
+            {
+                return Colors.White;
+            }
+
+            return Application.Current?.Resources.TryGetValue("Gray900", out var darkText) == true
+                ? darkText
+                : Color.FromArgb("#212121");
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }

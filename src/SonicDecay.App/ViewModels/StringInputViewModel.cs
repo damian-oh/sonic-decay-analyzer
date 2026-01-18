@@ -27,6 +27,7 @@ namespace SonicDecay.App.ViewModels
         private string _errorMessage = string.Empty;
         private bool _isEditing;
         private int? _editingSetId;
+        private string? _selectedPreset = "light"; // Default to light gauge
 
         /// <summary>
         /// Standard tuning fundamental frequencies for each string.
@@ -174,6 +175,16 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public string GaugeSummary => $"{GaugeE1:F3}-{GaugeE6:F3}";
 
+        /// <summary>
+        /// Gets or sets the currently selected gauge preset.
+        /// Used to highlight the active preset button.
+        /// </summary>
+        public string? SelectedPreset
+        {
+            get => _selectedPreset;
+            set => SetProperty(ref _selectedPreset, value);
+        }
+
         #endregion
 
         #region Commands
@@ -251,6 +262,9 @@ namespace SonicDecay.App.ViewModels
             GaugeD4 = 0.026;
             GaugeA5 = 0.036;
             GaugeE6 = 0.046;
+
+            // Reset preset selection to match light gauge
+            SelectedPreset = "light";
 
             ErrorMessage = string.Empty;
         }
@@ -367,7 +381,9 @@ namespace SonicDecay.App.ViewModels
 
         private void ApplyGaugePreset(string? preset)
         {
-            switch (preset?.ToLowerInvariant())
+            var normalizedPreset = preset?.ToLowerInvariant();
+
+            switch (normalizedPreset)
             {
                 case "extralight":
                     // Extra Light: .008-.038
@@ -400,8 +416,11 @@ namespace SonicDecay.App.ViewModels
                     break;
 
                 default:
-                    break;
+                    return; // Don't update SelectedPreset for unknown presets
             }
+
+            // Update selected preset for button highlighting
+            SelectedPreset = normalizedPreset;
 
             // Notify all gauge properties changed
             OnPropertiesChanged(

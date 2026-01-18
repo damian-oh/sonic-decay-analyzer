@@ -20,6 +20,8 @@
             <converters:DecayToColorConverter x:Key="DecayToColorConverter"/>
             <converters:SaveButtonTextConverter x:Key="SaveButtonTextConverter"/>
             <converters:NotNullConverter x:Key="NotNullConverter"/>
+            <converters:PresetToColorConverter x:Key="PresetToColorConverter"/>
+            <converters:PresetToTextColorConverter x:Key="PresetToTextColorConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
