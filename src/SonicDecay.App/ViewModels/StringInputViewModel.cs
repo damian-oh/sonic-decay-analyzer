@@ -5,8 +5,8 @@ using SonicDecay.App.Services.Interfaces;
 namespace SonicDecay.App.ViewModels
 {
     /// <summary>
-    /// ViewModel for creating and editing string sets.
-    /// Supports brand/model selection and custom gauge configuration.
+    /// ViewModel for creating and editing custom string sets.
+    /// Use this for string sets not included in the preset seed data.
     /// </summary>
     public class StringInputViewModel : BaseViewModel
     {
@@ -51,12 +51,12 @@ namespace SonicDecay.App.ViewModels
             _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
             _baselineRepository = baselineRepository ?? throw new ArgumentNullException(nameof(baselineRepository));
 
-            Title = "New String Set";
+            Title = "Custom String Set";
 
             // Initialize commands
             SaveCommand = new AsyncRelayCommand(SaveAsync, CanSave);
             CancelCommand = new AsyncRelayCommand(CancelAsync);
-            ApplyPresetCommand = new RelayCommand<string>(ApplyPreset);
+            ApplyPresetCommand = new RelayCommand<string>(ApplyGaugePreset);
         }
 
         #region Properties
@@ -164,7 +164,7 @@ namespace SonicDecay.App.ViewModels
             {
                 if (SetProperty(ref _isEditing, value))
                 {
-                    Title = value ? "Edit String Set" : "New String Set";
+                    Title = value ? "Edit String Set" : "Custom String Set";
                 }
             }
         }
@@ -189,7 +189,7 @@ namespace SonicDecay.App.ViewModels
         public ICommand CancelCommand { get; }
 
         /// <summary>
-        /// Command to apply a preset gauge configuration.
+        /// Command to apply a gauge preset configuration.
         /// </summary>
         public ICommand ApplyPresetCommand { get; }
 
@@ -365,7 +365,7 @@ namespace SonicDecay.App.ViewModels
             await Shell.Current.GoToAsync("..");
         }
 
-        private void ApplyPreset(string? preset)
+        private void ApplyGaugePreset(string? preset)
         {
             switch (preset?.ToLowerInvariant())
             {

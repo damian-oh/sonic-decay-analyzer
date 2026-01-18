@@ -3,7 +3,8 @@ using SonicDecay.App.ViewModels;
 namespace SonicDecay.App.Views
 {
     /// <summary>
-    /// Page for creating and editing string sets.
+    /// Page for creating and editing custom string sets.
+    /// Use this for string sets not included in the preset seed data.
     /// </summary>
     [QueryProperty(nameof(StringSetId), "id")]
     public partial class StringInputPage : ContentPage

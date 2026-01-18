@@ -17,13 +17,13 @@
                    Padding="12"
                    CornerRadius="8"
                    BorderColor="Transparent">
-                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
 
+                    <!-- Brand Picker -->
                     <Picker Grid.Row="0" Grid.Column="0"
-                            Title="Select String Set"
-                            ItemsSource="{Binding StringSets}"
-                            SelectedItem="{Binding SelectedStringSet}"
-                            ItemDisplayBinding="{Binding Brand}"
+                            Title="Select Brand"
+                            ItemsSource="{Binding AvailableBrands}"
+                            SelectedItem="{Binding SelectedBrand}"
                             IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
 
                     <Button Grid.Row="0" Grid.Column="1"
@@ -31,9 +31,18 @@
                             WidthRequest="44"
                             HeightRequest="44"
                             Command="{Binding NavigateToStringInputCommand}"
-                            SemanticProperties.Hint="Add new string set"/>
+                            SemanticProperties.Hint="Add custom string set"/>
 
+                    <!-- Model Picker (filtered by brand) -->
                     <Picker Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Title="Select Model"
+                            ItemsSource="{Binding FilteredModels}"
+                            SelectedItem="{Binding SelectedStringSet}"
+                            ItemDisplayBinding="{Binding Model}"
+                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <!-- String Number Picker -->
+                    <Picker Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                             Title="Select String"
                             ItemsSource="{Binding StringNumbers}"
                             SelectedIndex="{Binding SelectedStringNumber, Converter={StaticResource StringNumberIndexConverter}}"

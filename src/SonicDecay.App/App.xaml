@@ -19,6 +19,7 @@
             <converters:CaptureButtonTextConverter x:Key="CaptureButtonTextConverter"/>
             <converters:DecayToColorConverter x:Key="DecayToColorConverter"/>
             <converters:SaveButtonTextConverter x:Key="SaveButtonTextConverter"/>
+            <converters:NotNullConverter x:Key="NotNullConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

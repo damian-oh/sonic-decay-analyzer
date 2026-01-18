@@ -9,6 +9,12 @@
     <ScrollView Padding="16">
         <VerticalStackLayout Spacing="16">
 
+            <!-- Description -->
+            <Label Text="Enter custom string set information for strings not included in the preset database."
+                   FontSize="12"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                   HorizontalOptions="Center"/>
+
             <!-- Brand and Model Section -->
             <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                    Padding="16"
@@ -24,7 +30,7 @@
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Brand}"
-                               Placeholder="e.g., Elixir, D'Addario, Ernie Ball"/>
+                               Placeholder="e.g., GHS, Rotosound, Cleartone"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="4">
@@ -32,7 +38,7 @@
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Model}"
-                               Placeholder="e.g., Nanoweb, EXL110, Regular Slinky"/>
+                               Placeholder="e.g., Boomers, Swing Bass, Custom Wound"/>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Frame>

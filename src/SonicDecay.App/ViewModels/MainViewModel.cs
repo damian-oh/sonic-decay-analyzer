@@ -25,6 +25,10 @@ namespace SonicDecay.App.ViewModels
         private string _statusMessage = "Ready to analyze";
         private string _errorMessage = string.Empty;
 
+        // Brand/Model selection for presets
+        private List<StringSet> _allStringSets = new();
+        private string? _selectedBrand;
+
         // Current string set selection
         private StringSet? _selectedStringSet;
         private StringBaseline? _selectedBaseline;
@@ -67,6 +71,8 @@ namespace SonicDecay.App.ViewModels
 
             // Initialize collections
             StringSets = new ObservableCollection<StringSet>();
+            AvailableBrands = new ObservableCollection<string>();
+            FilteredModels = new ObservableCollection<StringSet>();
             DecayHistory = new ObservableCollection<MeasurementLog>();
             StringNumbers = new ObservableCollection<StringNumberItem>
             {
@@ -101,6 +107,16 @@ namespace SonicDecay.App.ViewModels
         public ObservableCollection<StringSet> StringSets { get; }
 
         /// <summary>
+        /// Gets the collection of available brands from preset string sets.
+        /// </summary>
+        public ObservableCollection<string> AvailableBrands { get; }
+
+        /// <summary>
+        /// Gets the collection of string set models filtered by selected brand.
+        /// </summary>
+        public ObservableCollection<StringSet> FilteredModels { get; }
+
+        /// <summary>
         /// Gets the collection of measurement history for decay trend visualization.
         /// </summary>
         public ObservableCollection<MeasurementLog> DecayHistory { get; }
@@ -111,7 +127,24 @@ namespace SonicDecay.App.ViewModels
         public ObservableCollection<StringNumberItem> StringNumbers { get; }
 
         /// <summary>
-        /// Gets or sets the currently selected string set.
+        /// Gets or sets the selected brand for filtering available models.
+        /// </summary>
+        public string? SelectedBrand
+        {
+            get => _selectedBrand;
+            set
+            {
+                if (SetProperty(ref _selectedBrand, value))
+                {
+                    FilterModelsByBrand();
+                    // Clear selected model when brand changes
+                    SelectedStringSet = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the currently selected string set (model).
         /// </summary>
         public StringSet? SelectedStringSet
         {
@@ -503,22 +536,64 @@ namespace SonicDecay.App.ViewModels
         {
             try
             {
-                var sets = await _stringSetRepository.GetAllAsync();
+                _allStringSets = await _stringSetRepository.GetAllAsync();
+
+                // Populate StringSets (all sets)
                 StringSets.Clear();
-                foreach (var set in sets)
+                foreach (var set in _allStringSets)
                 {
                     StringSets.Add(set);
                 }
 
-                // Auto-select first if available
-                if (StringSets.Count > 0 && SelectedStringSet == null)
+                // Extract unique brands and populate AvailableBrands
+                var brands = _allStringSets
+                    .Select(s => s.Brand)
+                    .Distinct()
+                    .OrderBy(b => b)
+                    .ToList();
+
+                AvailableBrands.Clear();
+                foreach (var brand in brands)
                 {
-                    SelectedStringSet = StringSets[0];
+                    AvailableBrands.Add(brand);
+                }
+
+                // Auto-select first brand if available
+                if (AvailableBrands.Count > 0 && SelectedBrand == null)
+                {
+                    SelectedBrand = AvailableBrands[0];
                 }
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Failed to load string sets: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Filters the available models based on the selected brand.
+        /// </summary>
+        private void FilterModelsByBrand()
+        {
+            FilteredModels.Clear();
+
+            if (string.IsNullOrEmpty(_selectedBrand))
+                return;
+
+            var filtered = _allStringSets
+                .Where(s => s.Brand == _selectedBrand)
+                .OrderBy(s => s.Model)
+                .ToList();
+
+            foreach (var model in filtered)
+            {
+                FilteredModels.Add(model);
+            }
+
+            // Auto-select first model if available
+            if (FilteredModels.Count > 0)
+            {
+                SelectedStringSet = FilteredModels[0];
             }
         }
 
