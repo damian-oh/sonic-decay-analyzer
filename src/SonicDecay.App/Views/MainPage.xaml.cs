@@ -1,24 +1,37 @@
-﻿namespace SonicDecay.App.Views
+using SonicDecay.App.ViewModels;
+
+namespace SonicDecay.App.Views
 {
+    /// <summary>
+    /// Main page for spectral analysis and decay monitoring.
+    /// </summary>
     public partial class MainPage : ContentPage
     {
-        int count = 0;
+        private readonly MainViewModel _viewModel;
 
-        public MainPage()
+        /// <summary>
+        /// Initializes a new instance of the MainPage class.
+        /// </summary>
+        /// <param name="viewModel">The MainViewModel instance from DI.</param>
+        public MainPage(MainViewModel viewModel)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            BindingContext = viewModel;
         }
 
-        private void OnCounterClicked(object? sender, EventArgs e)
+        /// <inheritdoc />
+        protected override async void OnAppearing()
         {
-            count++;
+            base.OnAppearing();
+            await _viewModel.InitializeAsync();
+        }
 
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+        /// <inheritdoc />
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            // ViewModel disposal is handled by DI container
         }
     }
 }
