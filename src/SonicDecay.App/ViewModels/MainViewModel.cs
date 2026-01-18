@@ -7,7 +7,8 @@ namespace SonicDecay.App.ViewModels
 {
     /// <summary>
     /// Main view model for the primary analysis interface.
-    /// Orchestrates audio capture, spectral analysis, and decay visualization.
+    /// Orchestrates audio capture, spectral analysis, decay visualization,
+    /// and predictive maintenance recommendations.
     /// </summary>
     public class MainViewModel : BaseViewModel, IDisposable
     {
@@ -16,6 +17,7 @@ namespace SonicDecay.App.ViewModels
         private readonly IStringSetRepository _stringSetRepository;
         private readonly IStringBaselineRepository _baselineRepository;
         private readonly IPermissionService _permissionService;
+        private readonly IRecommendationService _recommendationService;
 
         private bool _isCapturing;
         private bool _isAnalyzing;
@@ -39,6 +41,10 @@ namespace SonicDecay.App.ViewModels
         private string _healthStatus = "Unknown";
         private Color _healthColor = Colors.Gray;
 
+        // Recommendation state
+        private ReplacementRecommendation? _recommendation;
+        private bool _isLoadingRecommendation;
+
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
@@ -47,13 +53,15 @@ namespace SonicDecay.App.ViewModels
             IMeasurementService measurementService,
             IStringSetRepository stringSetRepository,
             IStringBaselineRepository baselineRepository,
-            IPermissionService permissionService)
+            IPermissionService permissionService,
+            IRecommendationService recommendationService)
         {
             _audioCaptureService = audioCaptureService ?? throw new ArgumentNullException(nameof(audioCaptureService));
             _measurementService = measurementService ?? throw new ArgumentNullException(nameof(measurementService));
             _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
             _baselineRepository = baselineRepository ?? throw new ArgumentNullException(nameof(baselineRepository));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
+            _recommendationService = recommendationService ?? throw new ArgumentNullException(nameof(recommendationService));
 
             Title = "Sonic Decay Analyzer";
 
@@ -77,6 +85,7 @@ namespace SonicDecay.App.ViewModels
             RefreshStringSetsCommand = new AsyncRelayCommand(LoadStringSetsAsync);
             EstablishBaselineCommand = new AsyncRelayCommand(EstablishBaselineAsync, () => IsCapturing && SelectedBaseline != null);
             NavigateToStringInputCommand = new AsyncRelayCommand(NavigateToStringInputAsync);
+            RefreshRecommendationCommand = new AsyncRelayCommand(RefreshRecommendationAsync, () => SelectedBaseline != null && !IsLoadingRecommendation);
 
             // Subscribe to audio capture events
             _audioCaptureService.BufferCaptured += OnBufferCaptured;
@@ -288,6 +297,93 @@ namespace SonicDecay.App.ViewModels
             private set => SetProperty(ref _healthColor, value);
         }
 
+        /// <summary>
+        /// Gets the current replacement recommendation based on decay trend analysis.
+        /// </summary>
+        public ReplacementRecommendation? Recommendation
+        {
+            get => _recommendation;
+            private set
+            {
+                if (SetProperty(ref _recommendation, value))
+                {
+                    OnPropertyChanged(nameof(HasRecommendation));
+                    OnPropertyChanged(nameof(RecommendationUrgencyText));
+                    OnPropertyChanged(nameof(RecommendationUrgencyColor));
+                    OnPropertyChanged(nameof(EstimatedHoursRemainingText));
+                    OnPropertyChanged(nameof(ProjectedReplacementDateText));
+                    OnPropertyChanged(nameof(RecommendationConfidenceText));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether recommendation data is available.
+        /// </summary>
+        public bool HasRecommendation => Recommendation != null;
+
+        /// <summary>
+        /// Gets a value indicating whether recommendation is being loaded.
+        /// </summary>
+        public bool IsLoadingRecommendation
+        {
+            get => _isLoadingRecommendation;
+            private set
+            {
+                if (SetProperty(ref _isLoadingRecommendation, value))
+                {
+                    (RefreshRecommendationCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the urgency level as display text.
+        /// </summary>
+        public string RecommendationUrgencyText => Recommendation?.Urgency switch
+        {
+            ReplacementUrgency.None => "Excellent",
+            ReplacementUrgency.Monitor => "Monitor",
+            ReplacementUrgency.Soon => "Soon",
+            ReplacementUrgency.Recommended => "Recommended",
+            ReplacementUrgency.Urgent => "Urgent",
+            _ => "Unknown"
+        };
+
+        /// <summary>
+        /// Gets the color for the urgency level indicator.
+        /// </summary>
+        public Color RecommendationUrgencyColor => Recommendation?.Urgency switch
+        {
+            ReplacementUrgency.None => Color.FromArgb("#22c55e"),       // Green
+            ReplacementUrgency.Monitor => Color.FromArgb("#3b82f6"),    // Blue
+            ReplacementUrgency.Soon => Color.FromArgb("#eab308"),       // Yellow
+            ReplacementUrgency.Recommended => Color.FromArgb("#f97316"), // Orange
+            ReplacementUrgency.Urgent => Color.FromArgb("#ef4444"),     // Red
+            _ => Colors.Gray
+        };
+
+        /// <summary>
+        /// Gets the estimated remaining hours as display text.
+        /// </summary>
+        public string EstimatedHoursRemainingText => Recommendation?.EstimatedHoursRemaining.HasValue == true
+            ? $"{Recommendation.EstimatedHoursRemaining.Value:F0} hours"
+            : "—";
+
+        /// <summary>
+        /// Gets the projected replacement date as display text.
+        /// </summary>
+        public string ProjectedReplacementDateText => Recommendation?.ProjectedReplacementDate.HasValue == true
+            ? Recommendation.ProjectedReplacementDate.Value.ToString("MMM d, yyyy")
+            : "—";
+
+        /// <summary>
+        /// Gets the recommendation confidence as display text.
+        /// </summary>
+        public string RecommendationConfidenceText => Recommendation != null
+            ? $"{Recommendation.ConfidencePercentage:F0}%"
+            : "—";
+
         #endregion
 
         #region Commands
@@ -321,6 +417,11 @@ namespace SonicDecay.App.ViewModels
         /// Command to navigate to string input page.
         /// </summary>
         public ICommand NavigateToStringInputCommand { get; }
+
+        /// <summary>
+        /// Command to refresh the replacement recommendation.
+        /// </summary>
+        public ICommand RefreshRecommendationCommand { get; }
 
         #endregion
 
@@ -435,10 +536,11 @@ namespace SonicDecay.App.ViewModels
                     SelectedStringSet.Id,
                     SelectedStringNumber);
 
-                // Load decay history if baseline exists
+                // Load decay history and recommendation if baseline exists
                 if (SelectedBaseline != null)
                 {
                     await LoadDecayHistoryAsync(SelectedBaseline.Id);
+                    await RefreshRecommendationAsync();
                 }
             }
             catch (Exception ex)
@@ -461,6 +563,31 @@ namespace SonicDecay.App.ViewModels
             catch (Exception ex)
             {
                 ErrorMessage = $"Failed to load history: {ex.Message}";
+            }
+        }
+
+        private async Task RefreshRecommendationAsync()
+        {
+            if (SelectedBaseline == null)
+            {
+                Recommendation = null;
+                return;
+            }
+
+            IsLoadingRecommendation = true;
+
+            try
+            {
+                Recommendation = await _recommendationService.AnalyzeDecayTrendAsync(SelectedBaseline.Id);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to load recommendation: {ex.Message}";
+                Recommendation = null;
+            }
+            finally
+            {
+                IsLoadingRecommendation = false;
             }
         }
 
@@ -566,6 +693,9 @@ namespace SonicDecay.App.ViewModels
                                 {
                                     DecayHistory.RemoveAt(DecayHistory.Count - 1);
                                 }
+
+                                // Refresh recommendation with new data
+                                _ = RefreshRecommendationAsync();
                             }
                         }
                         else
