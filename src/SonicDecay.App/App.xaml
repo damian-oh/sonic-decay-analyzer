@@ -22,6 +22,9 @@
             <converters:NotNullConverter x:Key="NotNullConverter"/>
             <converters:PresetToColorConverter x:Key="PresetToColorConverter"/>
             <converters:PresetToTextColorConverter x:Key="PresetToTextColorConverter"/>
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+            <converters:BoolToTextColorConverter x:Key="BoolToTextColorConverter"/>
+            <converters:IsNotNullConverter x:Key="IsNotNullConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

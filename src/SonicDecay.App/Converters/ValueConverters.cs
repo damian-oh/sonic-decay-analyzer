@@ -239,4 +239,87 @@ namespace SonicDecay.App.Converters
             throw new NotSupportedException();
         }
     }
+
+    /// <summary>
+    /// Converts a boolean to background color for selection buttons.
+    /// Returns Primary color if true, otherwise Gray.
+    /// </summary>
+    public class BoolToColorConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is bool isSelected && isSelected)
+            {
+                // Selected - use Primary color
+                return Application.Current?.Resources.TryGetValue("Primary", out var primaryColor) == true
+                    ? primaryColor
+                    : Color.FromArgb("#512BD4");
+            }
+
+            // Not selected - use Gray based on theme
+            if (Application.Current?.RequestedTheme == AppTheme.Dark)
+            {
+                return Application.Current?.Resources.TryGetValue("Gray600", out var darkGray) == true
+                    ? darkGray
+                    : Color.FromArgb("#404040");
+            }
+
+            return Application.Current?.Resources.TryGetValue("Gray100", out var lightGray) == true
+                ? lightGray
+                : Color.FromArgb("#F0F0F0");
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    /// <summary>
+    /// Converts a boolean to text color for selection buttons.
+    /// Returns White if true, otherwise theme-appropriate color.
+    /// </summary>
+    public class BoolToTextColorConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is bool isSelected && isSelected)
+            {
+                // Selected - use White text
+                return Colors.White;
+            }
+
+            // Not selected - use theme-appropriate text color
+            if (Application.Current?.RequestedTheme == AppTheme.Dark)
+            {
+                return Colors.White;
+            }
+
+            return Application.Current?.Resources.TryGetValue("Gray900", out var darkText) == true
+                ? darkText
+                : Color.FromArgb("#212121");
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    /// <summary>
+    /// Alias for NotNullConverter for XAML compatibility.
+    /// Converts an object to boolean (true if not null).
+    /// </summary>
+    public class IsNotNullConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            return value != null;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }

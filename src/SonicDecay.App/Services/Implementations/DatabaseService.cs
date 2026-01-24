@@ -48,7 +48,9 @@ namespace SonicDecay.App.Services.Implementations
                     return;
 
                 // Create tables in dependency order
+                await _connection.CreateTableAsync<Guitar>();
                 await _connection.CreateTableAsync<StringSet>();
+                await _connection.CreateTableAsync<GuitarStringSetPairing>();
                 await _connection.CreateTableAsync<StringBaseline>();
                 await _connection.CreateTableAsync<MeasurementLog>();
 

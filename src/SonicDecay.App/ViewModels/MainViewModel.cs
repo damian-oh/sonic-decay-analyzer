@@ -18,12 +18,17 @@ namespace SonicDecay.App.ViewModels
         private readonly IStringBaselineRepository _baselineRepository;
         private readonly IPermissionService _permissionService;
         private readonly IRecommendationService _recommendationService;
+        private readonly IGuitarRepository _guitarRepository;
+        private readonly IGuitarStringSetPairingRepository _pairingRepository;
 
         private bool _isCapturing;
         private bool _isAnalyzing;
         private bool _hasPermission;
         private string _statusMessage = "Ready to analyze";
         private string _errorMessage = string.Empty;
+
+        // Guitar selection
+        private Guitar? _selectedGuitar;
 
         // Brand/Model selection for presets
         private List<StringSet> _allStringSets = new();
@@ -58,7 +63,9 @@ namespace SonicDecay.App.ViewModels
             IStringSetRepository stringSetRepository,
             IStringBaselineRepository baselineRepository,
             IPermissionService permissionService,
-            IRecommendationService recommendationService)
+            IRecommendationService recommendationService,
+            IGuitarRepository guitarRepository,
+            IGuitarStringSetPairingRepository pairingRepository)
         {
             _audioCaptureService = audioCaptureService ?? throw new ArgumentNullException(nameof(audioCaptureService));
             _measurementService = measurementService ?? throw new ArgumentNullException(nameof(measurementService));
@@ -66,10 +73,13 @@ namespace SonicDecay.App.ViewModels
             _baselineRepository = baselineRepository ?? throw new ArgumentNullException(nameof(baselineRepository));
             _permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             _recommendationService = recommendationService ?? throw new ArgumentNullException(nameof(recommendationService));
+            _guitarRepository = guitarRepository ?? throw new ArgumentNullException(nameof(guitarRepository));
+            _pairingRepository = pairingRepository ?? throw new ArgumentNullException(nameof(pairingRepository));
 
             Title = "Sonic Decay Analyzer";
 
             // Initialize collections
+            Guitars = new ObservableCollection<Guitar>();
             StringSets = new ObservableCollection<StringSet>();
             AvailableBrands = new ObservableCollection<string>();
             FilteredModels = new ObservableCollection<StringSet>();
@@ -91,6 +101,8 @@ namespace SonicDecay.App.ViewModels
             RefreshStringSetsCommand = new AsyncRelayCommand(LoadStringSetsAsync);
             EstablishBaselineCommand = new AsyncRelayCommand(EstablishBaselineAsync, () => IsCapturing && SelectedBaseline != null);
             NavigateToStringInputCommand = new AsyncRelayCommand(NavigateToStringInputAsync);
+            NavigateToGuitarInputCommand = new AsyncRelayCommand(NavigateToGuitarInputAsync);
+            NavigateToChartCommand = new AsyncRelayCommand(NavigateToChartAsync, () => SelectedBaseline != null && DecayHistory.Count > 0);
             RefreshRecommendationCommand = new AsyncRelayCommand(RefreshRecommendationAsync, () => SelectedBaseline != null && !IsLoadingRecommendation);
 
             // Subscribe to audio capture events
@@ -100,6 +112,27 @@ namespace SonicDecay.App.ViewModels
         }
 
         #region Properties
+
+        /// <summary>
+        /// Gets the collection of available guitars.
+        /// </summary>
+        public ObservableCollection<Guitar> Guitars { get; }
+
+        /// <summary>
+        /// Gets or sets the currently selected guitar.
+        /// </summary>
+        public Guitar? SelectedGuitar
+        {
+            get => _selectedGuitar;
+            set
+            {
+                if (SetProperty(ref _selectedGuitar, value))
+                {
+                    _ = LoadActiveStringSetForGuitarAsync();
+                    UpdateCommandStates();
+                }
+            }
+        }
 
         /// <summary>
         /// Gets the collection of available string sets.
@@ -453,6 +486,16 @@ namespace SonicDecay.App.ViewModels
         public ICommand NavigateToStringInputCommand { get; }
 
         /// <summary>
+        /// Command to navigate to guitar input page.
+        /// </summary>
+        public ICommand NavigateToGuitarInputCommand { get; }
+
+        /// <summary>
+        /// Command to navigate to full decay chart page.
+        /// </summary>
+        public ICommand NavigateToChartCommand { get; }
+
+        /// <summary>
         /// Command to refresh the replacement recommendation.
         /// </summary>
         public ICommand RefreshRecommendationCommand { get; }
@@ -474,11 +517,12 @@ namespace SonicDecay.App.ViewModels
                 // Check microphone permission
                 HasPermission = await _permissionService.HasMicrophonePermissionAsync();
 
-                // Load string sets
+                // Load guitars and string sets
+                await LoadGuitarsAsync();
                 await LoadStringSetsAsync();
 
                 StatusMessage = HasPermission
-                    ? "Ready - select a string set to begin"
+                    ? "Ready - select a guitar and string set to begin"
                     : "Microphone permission required";
             }
             catch (Exception ex)
@@ -708,6 +752,73 @@ namespace SonicDecay.App.ViewModels
             await Shell.Current.GoToAsync("StringInputPage");
         }
 
+        private async Task NavigateToGuitarInputAsync()
+        {
+            await Shell.Current.GoToAsync("GuitarInputPage");
+        }
+
+        private async Task NavigateToChartAsync()
+        {
+            if (SelectedBaseline == null)
+            {
+                return;
+            }
+
+            await Shell.Current.GoToAsync($"DecayChartPage?baselineId={SelectedBaseline.Id}");
+        }
+
+        private async Task LoadGuitarsAsync()
+        {
+            try
+            {
+                var guitars = await _guitarRepository.GetAllAsync();
+
+                Guitars.Clear();
+                foreach (var guitar in guitars)
+                {
+                    Guitars.Add(guitar);
+                }
+
+                // Auto-select first guitar if available
+                if (Guitars.Count > 0 && SelectedGuitar == null)
+                {
+                    SelectedGuitar = Guitars[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to load guitars: {ex.Message}";
+            }
+        }
+
+        private async Task LoadActiveStringSetForGuitarAsync()
+        {
+            if (SelectedGuitar == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var activePairing = await _pairingRepository.GetActiveByGuitarIdAsync(SelectedGuitar.Id);
+                if (activePairing != null)
+                {
+                    // Find the string set and auto-select it
+                    var stringSet = _allStringSets.FirstOrDefault(s => s.Id == activePairing.SetId);
+                    if (stringSet != null)
+                    {
+                        // Auto-select brand and model
+                        SelectedBrand = stringSet.Brand;
+                        SelectedStringSet = stringSet;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to load guitar's string set: {ex.Message}";
+            }
+        }
+
         private void OnBufferCaptured(object? sender, AudioBufferCapturedEventArgs e)
         {
             // Update RMS level on UI thread
@@ -887,6 +998,7 @@ namespace SonicDecay.App.ViewModels
             (StopCaptureCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (RequestPermissionCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (EstablishBaselineCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (NavigateToChartCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
         }
 
         #endregion

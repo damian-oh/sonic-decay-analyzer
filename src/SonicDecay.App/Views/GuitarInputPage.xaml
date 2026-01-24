@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SonicDecay.App.ViewModels"
+             xmlns:models="clr-namespace:SonicDecay.App.Models"
+             x:Class="SonicDecay.App.Views.GuitarInputPage"
+             x:DataType="vm:GuitarInputViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView Padding="16">
+        <VerticalStackLayout Spacing="16">
+
+            <!-- Description -->
+            <Label Text="Enter your guitar details to track string installations and decay history."
+                   FontSize="12"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Guitar Information Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Guitar Information"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Name *"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Entry Text="{Binding Name}"
+                               Placeholder="e.g., My Strat, Studio Les Paul"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Make (Brand)"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Entry Text="{Binding Make}"
+                               Placeholder="e.g., Fender, Gibson, PRS"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Model"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Entry Text="{Binding Model}"
+                               Placeholder="e.g., Stratocaster, Les Paul Standard"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Guitar Type Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Guitar Type"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Start">
+                        <Button Text="Electric"
+                                Margin="4"
+                                Padding="16,10"
+                                FontSize="14"
+                                Command="{Binding SelectTypeCommand}"
+                                CommandParameter="Electric"
+                                BackgroundColor="{Binding IsElectric, Converter={StaticResource BoolToColorConverter}}"
+                                TextColor="{Binding IsElectric, Converter={StaticResource BoolToTextColorConverter}}"/>
+                        <Button Text="Acoustic"
+                                Margin="4"
+                                Padding="16,10"
+                                FontSize="14"
+                                Command="{Binding SelectTypeCommand}"
+                                CommandParameter="Acoustic"
+                                BackgroundColor="{Binding IsAcoustic, Converter={StaticResource BoolToColorConverter}}"
+                                TextColor="{Binding IsAcoustic, Converter={StaticResource BoolToTextColorConverter}}"/>
+                        <Button Text="Classical"
+                                Margin="4"
+                                Padding="16,10"
+                                FontSize="14"
+                                Command="{Binding SelectTypeCommand}"
+                                CommandParameter="Classical"
+                                BackgroundColor="{Binding IsClassical, Converter={StaticResource BoolToColorConverter}}"
+                                TextColor="{Binding IsClassical, Converter={StaticResource BoolToTextColorConverter}}"/>
+                        <Button Text="Bass"
+                                Margin="4"
+                                Padding="16,10"
+                                FontSize="14"
+                                Command="{Binding SelectTypeCommand}"
+                                CommandParameter="Bass"
+                                BackgroundColor="{Binding IsBass, Converter={StaticResource BoolToColorConverter}}"
+                                TextColor="{Binding IsBass, Converter={StaticResource BoolToTextColorConverter}}"/>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- String Set Pairing Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Current String Set (Optional)"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+
+                    <Label Text="Select the string set currently installed on this guitar."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+
+                    <Picker Title="Select String Set"
+                            ItemsSource="{Binding AvailableStringSets}"
+                            SelectedItem="{Binding SelectedStringSet}"
+                            ItemDisplayBinding="{Binding Brand}"/>
+
+                    <!-- Show selected string set details -->
+                    <Label Text="{Binding SelectedStringSet.Model, StringFormat='Model: {0}'}"
+                           FontSize="12"
+                           TextColor="{StaticResource Primary}"
+                           IsVisible="{Binding SelectedStringSet, Converter={StaticResource IsNotNullConverter}}"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Notes Section -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="16"
+                   CornerRadius="12"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Notes (Optional)"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+
+                    <Editor Text="{Binding Notes}"
+                            Placeholder="Add any notes about this guitar..."
+                            HeightRequest="100"
+                            AutoSize="TextChanges"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   FontSize="12"
+                   TextColor="{StaticResource HealthReplace}"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"/>
+
+            <!-- Action Buttons -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Button Text="Cancel"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+
+                <Button Grid.Column="1"
+                        Text="{Binding IsEditing, Converter={StaticResource SaveButtonTextConverter}}"
+                        Command="{Binding SaveCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"/>
+            </Grid>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource Primary}"
+                               HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

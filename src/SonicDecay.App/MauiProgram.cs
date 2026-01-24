@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 using SonicDecay.App.Services.Implementations;
 using SonicDecay.App.Services.Interfaces;
 using SonicDecay.App.ViewModels;
@@ -20,6 +21,7 @@ namespace SonicDecay.App
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseSkiaSharp()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -32,7 +34,9 @@ namespace SonicDecay.App
             // Register repositories (order matters for dependency resolution)
             builder.Services.AddTransient<IMeasurementLogRepository, MeasurementLogRepository>();
             builder.Services.AddTransient<IStringBaselineRepository, StringBaselineRepository>();
+            builder.Services.AddTransient<IGuitarStringSetPairingRepository, GuitarStringSetPairingRepository>();
             builder.Services.AddTransient<IStringSetRepository, StringSetRepository>();
+            builder.Services.AddTransient<IGuitarRepository, GuitarRepository>();
 
             // Register seed data service for preset string sets
             builder.Services.AddSingleton<ISeedDataService, SeedDataService>();
@@ -54,10 +58,14 @@ namespace SonicDecay.App
             // Register ViewModels
             builder.Services.AddTransient<MainViewModel>();
             builder.Services.AddTransient<StringInputViewModel>();
+            builder.Services.AddTransient<GuitarInputViewModel>();
+            builder.Services.AddTransient<DecayChartViewModel>();
 
             // Register Views (with ViewModel injection)
             builder.Services.AddTransient<MainPage>();
             builder.Services.AddTransient<StringInputPage>();
+            builder.Services.AddTransient<GuitarInputPage>();
+            builder.Services.AddTransient<DecayChartPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

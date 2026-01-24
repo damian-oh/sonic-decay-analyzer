@@ -5,24 +5,28 @@ namespace SonicDecay.App.Services.Implementations
 {
     /// <summary>
     /// Repository implementation for StringSet entity CRUD operations.
-    /// Implements manual cascade delete to StringBaselines and their MeasurementLogs.
+    /// Implements manual cascade delete to StringBaselines, MeasurementLogs, and GuitarStringSetPairings.
     /// </summary>
     public class StringSetRepository : IStringSetRepository
     {
         private readonly IDatabaseService _databaseService;
         private readonly IStringBaselineRepository _baselineRepository;
+        private readonly IGuitarStringSetPairingRepository _pairingRepository;
 
         /// <summary>
         /// Initializes a new instance of the StringSetRepository class.
         /// </summary>
         /// <param name="databaseService">The database service for connection access.</param>
         /// <param name="baselineRepository">The baseline repository for cascade operations.</param>
+        /// <param name="pairingRepository">The pairing repository for cascade operations.</param>
         public StringSetRepository(
             IDatabaseService databaseService,
-            IStringBaselineRepository baselineRepository)
+            IStringBaselineRepository baselineRepository,
+            IGuitarStringSetPairingRepository pairingRepository)
         {
             _databaseService = databaseService;
             _baselineRepository = baselineRepository;
+            _pairingRepository = pairingRepository;
         }
 
         /// <inheritdoc />
@@ -67,6 +71,9 @@ namespace SonicDecay.App.Services.Implementations
             // Manual cascade delete: first delete all related baselines
             // (which will cascade delete their measurement logs)
             await _baselineRepository.DeleteBySetIdAsync(id);
+
+            // Delete all related guitar pairings
+            await _pairingRepository.DeleteBySetIdAsync(id);
 
             // Then delete the string set
             return await _databaseService.Connection

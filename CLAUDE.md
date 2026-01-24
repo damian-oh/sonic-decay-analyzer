@@ -116,34 +116,74 @@ public class MeasurementLog
 {
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
-    
+
     [Indexed]
     public int BaselineId { get; set; }        // FK → StringBaseline.Id
-    
+
     // Current Spectral Measurements
     public double CurrentCentroid { get; set; }    // Hz
     public double CurrentHighRatio { get; set; }   // Decimal ratio
-    
+
     // Derived Analytics
     public double DecayPercentage { get; set; }    // Calculated degradation
     public double PlayTimeHours { get; set; }      // User-reported play time
-    
+
     public string? Note { get; set; }              // Optional user annotation
     public DateTime MeasuredAt { get; set; }
+}
+```
+
+**Guitar** (Instrument Registry)
+```csharp
+[Table("Guitars")]
+public class Guitar
+{
+    [PrimaryKey, AutoIncrement]
+    public int Id { get; set; }
+
+    [NotNull]
+    public string Name { get; set; }           // User-defined name (e.g., "My Strat")
+    public string? Make { get; set; }          // e.g., "Fender"
+    public string? Model { get; set; }         // e.g., "Stratocaster"
+    [NotNull]
+    public string Type { get; set; }           // "Electric", "Acoustic", "Classical", "Bass"
+    public string? Notes { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+```
+
+**GuitarStringSetPairing** (Junction Table)
+```csharp
+[Table("GuitarStringSetPairings")]
+public class GuitarStringSetPairing
+{
+    [PrimaryKey, AutoIncrement]
+    public int Id { get; set; }
+
+    [Indexed]
+    public int GuitarId { get; set; }          // FK → Guitar.Id
+    [Indexed]
+    public int SetId { get; set; }             // FK → StringSet.Id
+
+    public DateTime InstalledAt { get; set; }  // When strings were installed
+    public DateTime? RemovedAt { get; set; }   // Null = currently active
+    public bool IsActive { get; set; }         // Only one active per guitar
+    public string? Notes { get; set; }
 }
 ```
 
 ### Relational Structure
 
 ```
-StringSet (1) ──────< StringBaseline (6)
-                           │
-                           │ (1)
-                           │
-                           └──────< MeasurementLog (*)
+Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
+                            │
+                            └──── StringBaseline (6) ────< MeasurementLog (*)
 ```
 
 **Cardinality Rules**:
+- 1 Guitar → N GuitarStringSetPairings (string installation history)
+- 1 StringSet → N GuitarStringSetPairings (can be used on multiple guitars)
+- 1 GuitarStringSetPairing → 1 active per guitar (constraint enforced in repository)
 - 1 StringSet → 6 StringBaselines (one per string)
 - 1 StringBaseline → N MeasurementLogs (time-series)
 
@@ -152,10 +192,12 @@ StringSet (1) ──────< StringBaseline (6)
 - **Foreign Key Management**: Explicit handling in Repository layer (no cascading in SQLite attributes)
 - **No ORM Magic**: Avoid high-level abstractions like SQLiteNetExtensions
 - **Cascaded Deletes**: Implemented manually in Repository logic:
-  - Deleting a `StringSet` must delete all related `StringBaselines`
+  - Deleting a `Guitar` must delete all related `GuitarStringSetPairings`
+  - Deleting a `StringSet` must delete all related `StringBaselines` and `GuitarStringSetPairings`
   - Deleting a `StringBaseline` must delete all related `MeasurementLogs`
+- **Active Pairing Constraint**: Only one `GuitarStringSetPairing` per guitar can have `IsActive = true`
 - **Thread Safety**: All DB operations must be async and synchronized via `IDatabaseService`
-- **Indexing**: Foreign keys (`SetId`, `BaselineId`) are indexed for query performance
+- **Indexing**: Foreign keys (`SetId`, `BaselineId`, `GuitarId`) are indexed for query performance
 - **Gauge Storage**: Individual properties (GaugeE1-E6) chosen over array serialization for schema transparency
 
 ---
@@ -220,12 +262,24 @@ StringSet (1) ──────< StringBaseline (6)
 - Health percentage display with color-coded indicators
 
 ### Phase 5: Predictive Maintenance Algorithm ✓
-**Status**: Completed  
+**Status**: Completed
 **Deliverables**:
 - Decay rate calculation: `(Baseline - Current) / Baseline × 100`
 - Replacement recommendation engine
 - Latency optimization in audio pipeline
 - Final architectural review for production readiness
+
+### Phase 6: Guitar Management & Visualization
+**Status**: In Progress
+**Deliverables**:
+- `Guitar` entity with Name, Make, Model, Type, Notes
+- `GuitarStringSetPairing` junction table for instrument-string relationships
+- `IGuitarRepository` and `IGuitarStringSetPairingRepository` interfaces and implementations
+- `GuitarInputPage` for guitar CRUD operations
+- Guitar selection picker in `MainPage` (above Brand/Model)
+- LiveCharts2 integration for decay trend visualization
+- `DecayChartPage` with user-selectable metrics (Decay %, Centroid, HF Ratio)
+- Embedded chart preview in `MainPage`
 
 ---
 
@@ -384,14 +438,16 @@ When working with this project:
 
 ## Current Development Context
 
-**Active Phase**: Phase 2 (Audio Capture Service)  
-**Blockers**: None  
-**Next Milestone**: Complete `IAudioCaptureService` implementation across all platforms  
+**Active Phase**: Phase 6 (Guitar Management & Visualization)
+**Blockers**: None
+**Next Milestone**: Complete Guitar entity, pairing system, and decay trend visualization
 
 **Recent Decisions**:
 - Chose 48kHz sample rate for headroom in harmonic analysis
 - Selected RMS threshold over zero-crossing for trigger reliability
 - Prioritized Python.NET over subprocess for latency requirements
+- Selected LiveCharts2 (SkiaSharp) for cross-platform chart rendering
+- Guitar-StringSet pairing uses junction table with active flag constraint
 
 ---
 
@@ -407,6 +463,6 @@ Code should reflect **GTA Industry-ready** standards: production-grade, maintain
 
 ---
 
-*Last Updated: 2025-01-17*  
+*Last Updated: 2026-01-24*  
 *Maintained by: Project Architect*  
 *For AI Assistant Context: This document defines the complete technical contract for the Sonic Decay Analyzer project.*
