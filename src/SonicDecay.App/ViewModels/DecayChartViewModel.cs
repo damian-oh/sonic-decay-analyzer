@@ -23,6 +23,7 @@ namespace SonicDecay.App.ViewModels
         private bool _showDecayPercentage = true;
         private bool _showSpectralCentroid;
         private bool _showHfRatio;
+        private bool _hasData;
 
         // Series data collections
         private readonly ObservableCollection<DateTimePoint> _decayData = new();
@@ -139,6 +140,20 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public int? BaselineId => _baselineId;
 
+        /// <summary>
+        /// Gets a value indicating whether there is data to display.
+        /// </summary>
+        public bool HasData
+        {
+            get => _hasData;
+            private set => SetProperty(ref _hasData, value);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether there is no data to display.
+        /// </summary>
+        public bool HasNoData => !HasData;
+
         #endregion
 
         #region Commands
@@ -233,6 +248,8 @@ namespace SonicDecay.App.ViewModels
         {
             if (_baselineId == null)
             {
+                HasData = false;
+                OnPropertyChanged(nameof(HasNoData));
                 return;
             }
 
@@ -254,10 +271,15 @@ namespace SonicDecay.App.ViewModels
                     // Scale HF ratio for better visualization (multiply by 100)
                     _hfRatioData.Add(new DateTimePoint(log.MeasuredAt, log.CurrentHighRatio * 100));
                 }
+
+                HasData = _decayData.Count > 0;
+                OnPropertyChanged(nameof(HasNoData));
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load chart data: {ex.Message}");
+                HasData = false;
+                OnPropertyChanged(nameof(HasNoData));
             }
             finally
             {

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Input;
 using SonicDecay.App.Models;
 using SonicDecay.App.Services.Interfaces;
@@ -109,6 +110,7 @@ namespace SonicDecay.App.ViewModels
             NavigateToChartCommand = new AsyncRelayCommand(NavigateToChartAsync, () => SelectedBaseline != null && DecayHistory.Count > 0);
             RefreshRecommendationCommand = new AsyncRelayCommand(RefreshRecommendationAsync, () => SelectedBaseline != null && !IsLoadingRecommendation);
             DeletePairingCommand = new AsyncRelayCommand(DeleteSelectedPairingAsync, () => _selectedPairingItem != null && !IsCapturing);
+            NavigateToPairingsCommand = new AsyncRelayCommand(NavigateToPairingsAsync);
 
             // Subscribe to audio capture events
             _audioCaptureService.BufferCaptured += OnBufferCaptured;
@@ -220,6 +222,7 @@ namespace SonicDecay.App.ViewModels
                 if (SetProperty(ref _selectedStringSet, value))
                 {
                     _ = LoadBaselineForStringAsync();
+                    _ = UpdateAllBaselineStatusAsync();
                     UpdateCommandStates();
                 }
             }
@@ -537,6 +540,11 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public ICommand DeletePairingCommand { get; }
 
+        /// <summary>
+        /// Command to navigate to the pairings management page.
+        /// </summary>
+        public ICommand NavigateToPairingsCommand { get; }
+
         #endregion
 
         #region Public Methods
@@ -725,6 +733,39 @@ namespace SonicDecay.App.ViewModels
             }
         }
 
+        /// <summary>
+        /// Updates the baseline status for all 6 strings of the current string set.
+        /// </summary>
+        private async Task UpdateAllBaselineStatusAsync()
+        {
+            if (SelectedStringSet == null)
+            {
+                // Clear all status indicators
+                foreach (var item in StringNumbers)
+                {
+                    item.HasBaseline = false;
+                }
+                return;
+            }
+
+            try
+            {
+                // Load all baselines for the current string set
+                var baselines = await _baselineRepository.GetBySetIdAsync(SelectedStringSet.Id);
+
+                // Update each string number's baseline status
+                foreach (var item in StringNumbers)
+                {
+                    var baseline = baselines.FirstOrDefault(b => b.StringNumber == item.Number);
+                    item.HasBaseline = baseline?.InitialCentroid > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to check baseline status: {ex.Message}";
+            }
+        }
+
         private async Task LoadDecayHistoryAsync(int baselineId)
         {
             try
@@ -792,6 +833,11 @@ namespace SonicDecay.App.ViewModels
         private async Task NavigateToGuitarInputAsync()
         {
             await Shell.Current.GoToAsync("GuitarInputPage");
+        }
+
+        private async Task NavigateToPairingsAsync()
+        {
+            await Shell.Current.GoToAsync("PairingsManagementPage");
         }
 
         private async Task NavigateToChartAsync()
@@ -964,6 +1010,7 @@ namespace SonicDecay.App.ViewModels
                             StatusMessage = "Baseline established successfully";
                             _isEstablishingBaseline = false;
                             await LoadBaselineForStringAsync();
+                            await UpdateAllBaselineStatusAsync();
                         });
                     }
                     else
@@ -1124,8 +1171,15 @@ namespace SonicDecay.App.ViewModels
     /// <summary>
     /// Represents a string number option for selection.
     /// </summary>
-    public class StringNumberItem
+    public class StringNumberItem : INotifyPropertyChanged
     {
+        private bool _hasBaseline;
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         /// <summary>
         /// Gets the string number (1-6).
         /// </summary>
@@ -1137,12 +1191,48 @@ namespace SonicDecay.App.ViewModels
         public string DisplayName { get; }
 
         /// <summary>
+        /// Gets the short display name for the string (just the note).
+        /// </summary>
+        public string ShortName { get; }
+
+        /// <summary>
+        /// Gets or sets whether this string has a baseline established.
+        /// </summary>
+        public bool HasBaseline
+        {
+            get => _hasBaseline;
+            set
+            {
+                if (_hasBaseline != value)
+                {
+                    _hasBaseline = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasBaseline)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusIcon)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusColor)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the status icon based on baseline state.
+        /// </summary>
+        public string StatusIcon => HasBaseline ? "✓" : "○";
+
+        /// <summary>
+        /// Gets the status color based on baseline state.
+        /// </summary>
+        public Color StatusColor => HasBaseline
+            ? Color.FromArgb("#22c55e")  // Green for established
+            : Color.FromArgb("#9ca3af"); // Gray for not set
+
+        /// <summary>
         /// Initializes a new instance of StringNumberItem.
         /// </summary>
         public StringNumberItem(int number, string displayName)
         {
             Number = number;
             DisplayName = displayName;
+            ShortName = displayName.Split(' ')[0]; // e.g., "High" from "High E (1)"
         }
 
         /// <inheritdoc />

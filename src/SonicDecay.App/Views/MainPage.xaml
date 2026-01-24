@@ -99,7 +99,131 @@
                 </Grid>
             </Frame>
 
-            <!-- Baseline Status -->
+            <!-- Baseline Status Indicators for All Strings -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                   Padding="12"
+                   CornerRadius="8"
+                   BorderColor="Transparent"
+                   IsVisible="{Binding SelectedStringSet, Converter={StaticResource IsNotNullConverter}}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Baseline Status"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                    <Grid ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="4">
+                        <!-- String 1 - High E -->
+                        <Frame Grid.Column="0"
+                               Padding="8,4"
+                               CornerRadius="6"
+                               BorderColor="{Binding StringNumbers[0].StatusColor}"
+                               BackgroundColor="Transparent"
+                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StringNumbers[0].StatusIcon}"
+                                       FontSize="14"
+                                       TextColor="{Binding StringNumbers[0].StatusColor}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="E1"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                        <!-- String 2 - B -->
+                        <Frame Grid.Column="1"
+                               Padding="8,4"
+                               CornerRadius="6"
+                               BorderColor="{Binding StringNumbers[1].StatusColor}"
+                               BackgroundColor="Transparent"
+                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StringNumbers[1].StatusIcon}"
+                                       FontSize="14"
+                                       TextColor="{Binding StringNumbers[1].StatusColor}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="B2"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                        <!-- String 3 - G -->
+                        <Frame Grid.Column="2"
+                               Padding="8,4"
+                               CornerRadius="6"
+                               BorderColor="{Binding StringNumbers[2].StatusColor}"
+                               BackgroundColor="Transparent"
+                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StringNumbers[2].StatusIcon}"
+                                       FontSize="14"
+                                       TextColor="{Binding StringNumbers[2].StatusColor}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="G3"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                        <!-- String 4 - D -->
+                        <Frame Grid.Column="3"
+                               Padding="8,4"
+                               CornerRadius="6"
+                               BorderColor="{Binding StringNumbers[3].StatusColor}"
+                               BackgroundColor="Transparent"
+                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StringNumbers[3].StatusIcon}"
+                                       FontSize="14"
+                                       TextColor="{Binding StringNumbers[3].StatusColor}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="D4"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                        <!-- String 5 - A -->
+                        <Frame Grid.Column="4"
+                               Padding="8,4"
+                               CornerRadius="6"
+                               BorderColor="{Binding StringNumbers[4].StatusColor}"
+                               BackgroundColor="Transparent"
+                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StringNumbers[4].StatusIcon}"
+                                       FontSize="14"
+                                       TextColor="{Binding StringNumbers[4].StatusColor}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="A5"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                        <!-- String 6 - Low E -->
+                        <Frame Grid.Column="5"
+                               Padding="8,4"
+                               CornerRadius="6"
+                               BorderColor="{Binding StringNumbers[5].StatusColor}"
+                               BackgroundColor="Transparent"
+                               HorizontalOptions="Center">
+                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StringNumbers[5].StatusIcon}"
+                                       FontSize="14"
+                                       TextColor="{Binding StringNumbers[5].StatusColor}"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="E6"
+                                       FontSize="10"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Current Baseline Status -->
             <Label Text="{Binding BaselineStatus}"
                    FontSize="12"
                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
@@ -352,6 +476,57 @@
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- No Decay History Message -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                       Padding="24"
+                       CornerRadius="12"
+                       BorderColor="Transparent"
+                       IsVisible="{Binding HasBaseline}">
+                    <Frame.Triggers>
+                        <DataTrigger TargetType="Frame" Binding="{Binding DecayHistory.Count, Converter={StaticResource IntToBoolConverter}}" Value="True">
+                            <Setter Property="IsVisible" Value="False"/>
+                        </DataTrigger>
+                    </Frame.Triggers>
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="8">
+                        <Label Text="No Measurements Yet"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Start capturing audio and play your string to record decay measurements."
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Quick Navigation -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                       Padding="16"
+                       CornerRadius="12"
+                       BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Quick Navigation"
+                               FontSize="14"
+                               FontAttributes="Bold"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Button Text="Manage Pairings"
+                                    FontSize="12"
+                                    Padding="12,10"
+                                    Command="{Binding NavigateToPairingsCommand}"
+                                    BackgroundColor="{StaticResource AnalysisAccent}"
+                                    TextColor="White"/>
+                            <Button Grid.Column="1"
+                                    Text="Add String Set"
+                                    FontSize="12"
+                                    Padding="12,10"
+                                    Command="{Binding NavigateToStringInputCommand}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                        </Grid>
                     </VerticalStackLayout>
                 </Frame>
 

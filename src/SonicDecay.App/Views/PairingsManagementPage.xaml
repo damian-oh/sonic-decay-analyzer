@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SonicDecay.App.ViewModels"
+             x:Class="SonicDecay.App.Views.PairingsManagementPage"
+             x:DataType="vm:PairingsManagementViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <!-- Header Section -->
+        <VerticalStackLayout Grid.Row="0" Spacing="12">
+
+            <!-- Description -->
+            <Label Text="Manage string set installations for your guitars."
+                   FontSize="12"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Guitar Selection -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                   Padding="12"
+                   CornerRadius="8"
+                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                <Picker Title="Select Guitar"
+                        ItemsSource="{Binding Guitars}"
+                        SelectedItem="{Binding SelectedGuitar}"
+                        ItemDisplayBinding="{Binding Name}"/>
+            </Frame>
+
+            <!-- No Guitars Message -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                   Padding="24"
+                   CornerRadius="12"
+                   BorderColor="Transparent"
+                   IsVisible="{Binding HasNoGuitars}">
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                    <Label Text="No Guitars Found"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Add a guitar first to manage string set pairings."
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+
+        <!-- Pairings List -->
+        <ScrollView Grid.Row="1" Margin="0,16,0,0">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- No Pairings Message -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                       Padding="24"
+                       CornerRadius="12"
+                       BorderColor="Transparent"
+                       IsVisible="{Binding HasNoPairings}">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                        <Label Text="No String Sets Installed"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"/>
+                        <Label Text="This guitar has no string set pairings. Add a string set pairing from the Guitar Input page."
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Pairings Collection -->
+                <CollectionView ItemsSource="{Binding Pairings}"
+                                SelectionMode="Single"
+                                SelectedItem="{Binding SelectedPairing}"
+                                IsVisible="{Binding HasData}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:PairingDisplayItem">
+                            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                                   Padding="16"
+                                   Margin="0,0,0,8"
+                                   CornerRadius="12"
+                                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+
+                                    <!-- String Set Info -->
+                                    <VerticalStackLayout Grid.Row="0" Grid.Column="0">
+                                        <Label Text="{Binding StringSet.Brand}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"/>
+                                        <Label Text="{Binding StringSet.Model}"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Active Badge -->
+                                    <Frame Grid.Row="0" Grid.Column="1"
+                                           Padding="8,4"
+                                           CornerRadius="8"
+                                           BorderColor="Transparent"
+                                           BackgroundColor="{StaticResource HealthExcellent}"
+                                           IsVisible="{Binding IsActive}"
+                                           VerticalOptions="Start">
+                                        <Label Text="Active"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="White"/>
+                                    </Frame>
+
+                                    <!-- Installation Date -->
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                           Text="{Binding InstalledDateText, StringFormat='Installed: {0}'}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+
+                                    <!-- Action Buttons -->
+                                    <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                          ColumnDefinitions="*,*" ColumnSpacing="8">
+
+                                        <Button Grid.Column="0"
+                                                Text="Set Active"
+                                                FontSize="12"
+                                                Padding="12,8"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PairingsManagementViewModel}}, Path=SetActiveCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource Primary}"
+                                                TextColor="White"
+                                                IsVisible="{Binding IsActive, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                                        <Button Grid.Column="0"
+                                                Text="Currently Active"
+                                                FontSize="12"
+                                                Padding="12,8"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                                IsEnabled="False"
+                                                IsVisible="{Binding IsActive}"/>
+
+                                        <Button Grid.Column="1"
+                                                Text="Delete"
+                                                FontSize="12"
+                                                Padding="12,8"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PairingsManagementViewModel}}, Path=DeletePairingCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{StaticResource HealthReplace}"
+                                                TextColor="White"/>
+                                    </Grid>
+
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- Error Message -->
+                <Label Text="{Binding ErrorMessage}"
+                       FontSize="12"
+                       TextColor="{StaticResource HealthReplace}"
+                       HorizontalOptions="Center"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
+            <Button Text="Back"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+
+            <Button Grid.Column="1"
+                    Text="Refresh"
+                    Command="{Binding RefreshCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"/>
+        </Grid>
+
+        <!-- Loading Overlay -->
+        <Frame Grid.RowSpan="3"
+               BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}"
+               IsVisible="{Binding IsBusy}"
+               BorderColor="Transparent">
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               Color="{StaticResource Primary}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+        </Frame>
+    </Grid>
+
+</ContentPage>

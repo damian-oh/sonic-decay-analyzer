@@ -15,8 +15,37 @@
                             XAxes="{Binding XAxes}"
                             YAxes="{Binding YAxes}"
                             ZoomMode="X"
-                            TooltipPosition="Top">
+                            TooltipPosition="Top"
+                            IsVisible="{Binding HasData}">
         </lvc:CartesianChart>
+
+        <!-- No Data Message -->
+        <Frame Grid.Row="0"
+               BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+               Padding="32"
+               CornerRadius="16"
+               BorderColor="Transparent"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               IsVisible="{Binding HasNoData}">
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="16">
+                <Label Text="No Decay Data"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+                <Label Text="There are no measurements recorded for this string baseline yet."
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"/>
+                <Label Text="Start capturing audio on the main page and play your string to record decay measurements."
+                       FontSize="12"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       MaximumWidthRequest="300"/>
+            </VerticalStackLayout>
+        </Frame>
 
         <!-- Metric Toggle Buttons -->
         <Frame Grid.Row="1"
@@ -24,7 +53,8 @@
                Padding="12"
                CornerRadius="12"
                BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-               Margin="0,16,0,0">
+               Margin="0,16,0,0"
+               IsVisible="{Binding HasData}">
             <VerticalStackLayout Spacing="12">
                 <Label Text="Visible Metrics"
                        FontSize="14"

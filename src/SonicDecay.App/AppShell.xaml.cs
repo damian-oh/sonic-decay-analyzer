@@ -18,6 +18,7 @@ namespace SonicDecay.App
             Routing.RegisterRoute("StringInputPage", typeof(StringInputPage));
             Routing.RegisterRoute("GuitarInputPage", typeof(GuitarInputPage));
             Routing.RegisterRoute("DecayChartPage", typeof(DecayChartPage));
+            Routing.RegisterRoute("PairingsManagementPage", typeof(PairingsManagementPage));
         }
     }
 }
