@@ -85,7 +85,7 @@ namespace SonicDecay.App.ViewModels
             };
 
             // Initialize commands
-            StartCaptureCommand = new AsyncRelayCommand(StartCaptureAsync, () => !IsCapturing && HasPermission && SelectedBaseline != null);
+            StartCaptureCommand = new AsyncRelayCommand(StartCaptureAsync, () => !IsCapturing && HasPermission && CanStartCapture());
             StopCaptureCommand = new AsyncRelayCommand(StopCaptureAsync, () => IsCapturing);
             RequestPermissionCommand = new AsyncRelayCommand(RequestPermissionAsync, () => !HasPermission);
             RefreshStringSetsCommand = new AsyncRelayCommand(LoadStringSetsAsync);
@@ -139,6 +139,7 @@ namespace SonicDecay.App.ViewModels
                     FilterModelsByBrand();
                     // Clear selected model when brand changes
                     SelectedStringSet = null;
+                    UpdateCommandStates();
                 }
             }
         }
@@ -496,9 +497,28 @@ namespace SonicDecay.App.ViewModels
 
         private async Task StartCaptureAsync()
         {
+            // Validate all required selections
+            if (string.IsNullOrEmpty(SelectedBrand))
+            {
+                ErrorMessage = "Please select a string brand first";
+                return;
+            }
+
+            if (SelectedStringSet == null)
+            {
+                ErrorMessage = "Please select a string model first";
+                return;
+            }
+
+            if (SelectedStringNumber < 1 || SelectedStringNumber > 6)
+            {
+                ErrorMessage = "Please select a string number (1-6)";
+                return;
+            }
+
             if (SelectedBaseline == null)
             {
-                ErrorMessage = "Please select a string set and string number first";
+                ErrorMessage = "No baseline found for this string - please ensure string set is properly configured";
                 return;
             }
 
@@ -846,6 +866,19 @@ namespace SonicDecay.App.ViewModels
                 HealthStatus = "Replace";
                 HealthColor = Color.FromArgb("#ef4444"); // Red
             }
+        }
+
+        /// <summary>
+        /// Determines whether audio capture can be started based on current selection state.
+        /// Requires brand, model, and string number to be selected.
+        /// </summary>
+        /// <returns>True if all required selections are made; otherwise, false.</returns>
+        private bool CanStartCapture()
+        {
+            return !string.IsNullOrEmpty(SelectedBrand)
+                && SelectedStringSet != null
+                && SelectedStringNumber >= 1
+                && SelectedStringNumber <= 6;
         }
 
         private void UpdateCommandStates()
