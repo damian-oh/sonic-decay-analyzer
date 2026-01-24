@@ -359,7 +359,7 @@ namespace SonicDecay.App.Services.Implementations
         /// <summary>
         /// Analyzes HF energy ratio trend compared to baseline.
         /// </summary>
-        /// <returns>Ratio of current to baseline HF energy (< 1 means degradation).</returns>
+        /// <returns>Ratio of current to baseline HF energy (&lt; 1 means degradation).</returns>
         private double CalculateHfRatioTrend(StringBaseline baseline, IReadOnlyList<MeasurementLog> measurements)
         {
             if (baseline.InitialHighRatio <= 0 || measurements.Count == 0)

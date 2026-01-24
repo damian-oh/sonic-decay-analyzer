@@ -65,13 +65,7 @@ namespace SonicDecay.App.Services.Implementations
                     // Create format for our processing (mono, float)
                     var processingFormat = new AVAudioFormat(
                         nativeFormat.SampleRate,
-                        1); // Mono
-
-                    if (processingFormat == null)
-                    {
-                        OnError("Failed to create audio processing format.");
-                        return false;
-                    }
+                        1)!; // Mono
 
                     // Calculate buffer size
                     uint bufferSize = (uint)AudioCaptureConstants.BufferSizeSamples;
@@ -139,7 +133,7 @@ namespace SonicDecay.App.Services.Implementations
 
         private void HandleAudioBuffer(AVAudioPcmBuffer buffer)
         {
-            if (!_isCapturing || buffer.FloatChannelData == null)
+            if (!_isCapturing || buffer.FloatChannelData == IntPtr.Zero)
                 return;
 
             try

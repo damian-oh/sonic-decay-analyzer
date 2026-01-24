@@ -5,6 +5,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using SonicDecay.App.Services.Interfaces;
 
+// Process.Start/Kill are unsupported on iOS/macCatalyst. Python subprocess interop
+// is intentionally Windows/macOS/Android-only. iOS users will use alternative analysis.
+#pragma warning disable CA1416
+
 namespace SonicDecay.App.Services.Implementations
 {
     /// <summary>

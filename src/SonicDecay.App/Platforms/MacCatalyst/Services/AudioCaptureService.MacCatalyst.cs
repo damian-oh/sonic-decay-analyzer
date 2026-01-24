@@ -61,13 +61,7 @@ namespace SonicDecay.App.Services.Implementations
                     var nativeFormat = _inputNode.GetBusOutputFormat(0);
                     ActualSampleRate = (int)nativeFormat.SampleRate;
 
-                    var processingFormat = new AVAudioFormat(nativeFormat.SampleRate, 1);
-
-                    if (processingFormat == null)
-                    {
-                        OnError("Failed to create audio processing format.");
-                        return false;
-                    }
+                    var processingFormat = new AVAudioFormat(nativeFormat.SampleRate, 1)!;
 
                     uint bufferSize = (uint)AudioCaptureConstants.BufferSizeSamples;
 
@@ -130,7 +124,7 @@ namespace SonicDecay.App.Services.Implementations
 
         private void HandleAudioBuffer(AVAudioPcmBuffer buffer)
         {
-            if (!_isCapturing || buffer.FloatChannelData == null)
+            if (!_isCapturing || buffer.FloatChannelData == IntPtr.Zero)
                 return;
 
             try
