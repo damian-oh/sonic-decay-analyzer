@@ -30,6 +30,9 @@ namespace SonicDecay.App.ViewModels
         // Guitar selection
         private Guitar? _selectedGuitar;
 
+        // Guitar-String pairing selection
+        private PairingDisplayItem? _selectedPairingItem;
+
         // Brand/Model selection for presets
         private List<StringSet> _allStringSets = new();
         private string? _selectedBrand;
@@ -80,6 +83,7 @@ namespace SonicDecay.App.ViewModels
 
             // Initialize collections
             Guitars = new ObservableCollection<Guitar>();
+            AvailablePairings = new ObservableCollection<PairingDisplayItem>();
             StringSets = new ObservableCollection<StringSet>();
             AvailableBrands = new ObservableCollection<string>();
             FilteredModels = new ObservableCollection<StringSet>();
@@ -104,6 +108,7 @@ namespace SonicDecay.App.ViewModels
             NavigateToGuitarInputCommand = new AsyncRelayCommand(NavigateToGuitarInputAsync);
             NavigateToChartCommand = new AsyncRelayCommand(NavigateToChartAsync, () => SelectedBaseline != null && DecayHistory.Count > 0);
             RefreshRecommendationCommand = new AsyncRelayCommand(RefreshRecommendationAsync, () => SelectedBaseline != null && !IsLoadingRecommendation);
+            DeletePairingCommand = new AsyncRelayCommand(DeleteSelectedPairingAsync, () => _selectedPairingItem != null && !IsCapturing);
 
             // Subscribe to audio capture events
             _audioCaptureService.BufferCaptured += OnBufferCaptured;
@@ -128,11 +133,38 @@ namespace SonicDecay.App.ViewModels
             {
                 if (SetProperty(ref _selectedGuitar, value))
                 {
-                    _ = LoadActiveStringSetForGuitarAsync();
+                    _ = LoadPairingsForGuitarAsync();
                     UpdateCommandStates();
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the collection of available pairings for the selected guitar.
+        /// </summary>
+        public ObservableCollection<PairingDisplayItem> AvailablePairings { get; }
+
+        /// <summary>
+        /// Gets or sets the currently selected guitar-string pairing.
+        /// </summary>
+        public PairingDisplayItem? SelectedPairing
+        {
+            get => _selectedPairingItem;
+            set
+            {
+                if (SetProperty(ref _selectedPairingItem, value))
+                {
+                    _ = LoadStringSetFromPairingAsync();
+                    OnPropertyChanged(nameof(HasPairings));
+                    UpdateCommandStates();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether there are pairings available for the selected guitar.
+        /// </summary>
+        public bool HasPairings => AvailablePairings.Count > 0;
 
         /// <summary>
         /// Gets the collection of available string sets.
@@ -500,6 +532,11 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public ICommand RefreshRecommendationCommand { get; }
 
+        /// <summary>
+        /// Command to delete the selected guitar-string pairing.
+        /// </summary>
+        public ICommand DeletePairingCommand { get; }
+
         #endregion
 
         #region Public Methods
@@ -791,8 +828,13 @@ namespace SonicDecay.App.ViewModels
             }
         }
 
-        private async Task LoadActiveStringSetForGuitarAsync()
+        private async Task LoadPairingsForGuitarAsync()
         {
+            AvailablePairings.Clear();
+            _selectedPairingItem = null;
+            OnPropertyChanged(nameof(SelectedPairing));
+            OnPropertyChanged(nameof(HasPairings));
+
             if (SelectedGuitar == null)
             {
                 return;
@@ -800,22 +842,82 @@ namespace SonicDecay.App.ViewModels
 
             try
             {
-                var activePairing = await _pairingRepository.GetActiveByGuitarIdAsync(SelectedGuitar.Id);
-                if (activePairing != null)
+                var pairings = await _pairingRepository.GetByGuitarIdAsync(SelectedGuitar.Id);
+
+                foreach (var pairing in pairings)
                 {
-                    // Find the string set and auto-select it
-                    var stringSet = _allStringSets.FirstOrDefault(s => s.Id == activePairing.SetId);
+                    // Find the associated string set for display
+                    var stringSet = _allStringSets.FirstOrDefault(s => s.Id == pairing.SetId);
                     if (stringSet != null)
                     {
-                        // Auto-select brand and model
-                        SelectedBrand = stringSet.Brand;
-                        SelectedStringSet = stringSet;
+                        AvailablePairings.Add(new PairingDisplayItem(pairing, stringSet));
                     }
+                }
+
+                OnPropertyChanged(nameof(HasPairings));
+
+                // Auto-select the active pairing, or the first one if none is active
+                var activeDisplayItem = AvailablePairings.FirstOrDefault(p => p.IsActive) ?? AvailablePairings.FirstOrDefault();
+                if (activeDisplayItem != null)
+                {
+                    _selectedPairingItem = activeDisplayItem;
+                    OnPropertyChanged(nameof(SelectedPairing));
+                    await LoadStringSetFromPairingAsync();
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load guitar's string set: {ex.Message}";
+                ErrorMessage = $"Failed to load guitar's string sets: {ex.Message}";
+            }
+        }
+
+        private Task LoadStringSetFromPairingAsync()
+        {
+            if (_selectedPairingItem == null)
+            {
+                SelectedBrand = null;
+                SelectedStringSet = null;
+                return Task.CompletedTask;
+            }
+
+            try
+            {
+                var stringSet = _selectedPairingItem.StringSet;
+                // Set brand and model to load the correct baseline
+                SelectedBrand = stringSet.Brand;
+                SelectedStringSet = stringSet;
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to load string set: {ex.Message}";
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private async Task DeleteSelectedPairingAsync()
+        {
+            if (_selectedPairingItem == null)
+            {
+                ErrorMessage = "No pairing selected";
+                return;
+            }
+
+            try
+            {
+                var pairingId = _selectedPairingItem.Pairing.Id;
+
+                // Delete the pairing
+                await _pairingRepository.DeleteAsync(pairingId);
+
+                StatusMessage = "String set pairing deleted";
+
+                // Reload pairings for the guitar
+                await LoadPairingsForGuitarAsync();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to delete pairing: {ex.Message}";
             }
         }
 
@@ -999,6 +1101,7 @@ namespace SonicDecay.App.ViewModels
             (RequestPermissionCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (EstablishBaselineCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             (NavigateToChartCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            (DeletePairingCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -1040,6 +1143,54 @@ namespace SonicDecay.App.ViewModels
         {
             Number = number;
             DisplayName = displayName;
+        }
+
+        /// <inheritdoc />
+        public override string ToString() => DisplayName;
+    }
+
+    /// <summary>
+    /// Represents a guitar-string set pairing for display in selection controls.
+    /// Combines pairing metadata with string set information for user-friendly presentation.
+    /// </summary>
+    public class PairingDisplayItem
+    {
+        /// <summary>
+        /// Gets the underlying pairing entity.
+        /// </summary>
+        public GuitarStringSetPairing Pairing { get; }
+
+        /// <summary>
+        /// Gets the associated string set.
+        /// </summary>
+        public StringSet StringSet { get; }
+
+        /// <summary>
+        /// Gets the display name combining brand, model, and installation date.
+        /// </summary>
+        public string DisplayName { get; }
+
+        /// <summary>
+        /// Gets the installation date formatted for display.
+        /// </summary>
+        public string InstalledDateText { get; }
+
+        /// <summary>
+        /// Gets whether this pairing is currently active.
+        /// </summary>
+        public bool IsActive => Pairing.IsActive;
+
+        /// <summary>
+        /// Initializes a new instance of PairingDisplayItem.
+        /// </summary>
+        public PairingDisplayItem(GuitarStringSetPairing pairing, StringSet stringSet)
+        {
+            Pairing = pairing;
+            StringSet = stringSet;
+            InstalledDateText = pairing.InstalledAt.ToString("MMM d, yyyy");
+
+            var activeIndicator = pairing.IsActive ? " (Active)" : "";
+            DisplayName = $"{stringSet.Brand} {stringSet.Model} - {InstalledDateText}{activeIndicator}";
         }
 
         /// <inheritdoc />

@@ -34,6 +34,33 @@
                 </Grid>
             </Frame>
 
+            <!-- String Set Pairing Selection -->
+            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                   Padding="12"
+                   CornerRadius="8"
+                   BorderColor="Transparent"
+                   IsVisible="{Binding HasPairings}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <Picker Grid.Column="0"
+                            Title="Select String Set Installation"
+                            ItemsSource="{Binding AvailablePairings}"
+                            SelectedItem="{Binding SelectedPairing}"
+                            ItemDisplayBinding="{Binding DisplayName}"
+                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Button Grid.Column="1"
+                            Text="×"
+                            FontSize="24"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            Command="{Binding DeletePairingCommand}"
+                            BackgroundColor="{StaticResource HealthReplace}"
+                            TextColor="White"
+                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"
+                            SemanticProperties.Hint="Delete selected string set pairing"/>
+                </Grid>
+            </Frame>
+
             <!-- String Set Selection -->
             <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
                    Padding="12"
