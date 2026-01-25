@@ -54,7 +54,9 @@ namespace SonicDecay.App
 
             // Register predictive maintenance services (Phase 5)
             builder.Services.AddTransient<IRecommendationService, RecommendationService>();
+#if !ANDROID && !IOS && !MACCATALYST
             builder.Services.AddSingleton<IPythonEnginePool, PythonEnginePool>();
+#endif
 
             // Register ViewModels
             builder.Services.AddTransient<MainViewModel>();
