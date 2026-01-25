@@ -45,8 +45,9 @@ namespace SonicDecay.App
             builder.Services.AddSingleton<IPermissionService, PermissionService>();
             builder.Services.AddSingleton<IAudioCaptureService, AudioCaptureService>();
 
-            // Register spectral analysis service (Python engine interop)
-            builder.Services.AddSingleton<IAnalysisService, AnalysisService>();
+            // Register spectral analysis service (native C# implementation)
+            // Cross-platform compatible: iOS, Android, Windows, macOS
+            builder.Services.AddSingleton<IAnalysisService, NativeAnalysisService>();
 
             // Register measurement coordination service (analysis + persistence)
             builder.Services.AddTransient<IMeasurementService, MeasurementService>();

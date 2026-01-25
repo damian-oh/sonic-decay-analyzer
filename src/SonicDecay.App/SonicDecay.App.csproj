@@ -43,6 +43,21 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<!-- Android AOT/Trimming Configuration -->
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<!-- Disable AOT to diagnose startup crash (use JIT instead) -->
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<!-- Use partial linking (less aggressive) to preserve more types -->
+		<TrimMode>partial</TrimMode>
+		<!-- Suppress trim warnings for known-problematic assemblies -->
+		<SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+	</PropertyGroup>
+
+	<!-- Include linker configuration for Android -->
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<TrimmerRootDescriptor Include="Platforms\Android\LinkerConfig.xml" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -67,6 +82,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 		<PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" Version="2.0.0-rc3.3" />
+		<PackageReference Include="FftSharp" Version="2.2.0" />
 	</ItemGroup>
 
 </Project>

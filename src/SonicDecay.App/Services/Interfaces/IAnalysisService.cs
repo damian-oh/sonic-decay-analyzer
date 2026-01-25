@@ -99,9 +99,15 @@ namespace SonicDecay.App.Services.Interfaces
     }
 
     /// <summary>
-    /// Provides spectral analysis services via the Python DSP engine.
-    /// Communicates with the Python backend for FFT-based metric extraction.
+    /// Provides spectral analysis services for acoustic degradation measurement.
+    /// Default implementation uses native C# FFT via FftSharp library.
+    /// Cross-platform compatible (iOS, Android, Windows, macOS).
     /// </summary>
+    /// <remarks>
+    /// Two implementations are available:
+    /// - NativeAnalysisService: Pure C# using FftSharp (default, all platforms)
+    /// - AnalysisService: Python subprocess interop (desktop fallback/debugging)
+    /// </remarks>
     public interface IAnalysisService
     {
         /// <summary>
@@ -145,13 +151,21 @@ namespace SonicDecay.App.Services.Interfaces
 
         /// <summary>
         /// Gets or sets the path to the Python executable.
+        /// Only used by Python-based AnalysisService implementation.
         /// Default searches PATH for "python" or "python3".
         /// </summary>
+        /// <remarks>
+        /// For NativeAnalysisService, this property is ignored.
+        /// </remarks>
         string PythonPath { get; set; }
 
         /// <summary>
         /// Gets or sets the path to the SonicDecay.Engine directory.
+        /// Only used by Python-based AnalysisService implementation.
         /// </summary>
+        /// <remarks>
+        /// For NativeAnalysisService, this property is ignored.
+        /// </remarks>
         string EnginePath { get; set; }
 
         /// <summary>

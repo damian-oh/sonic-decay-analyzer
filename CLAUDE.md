@@ -25,9 +25,9 @@ This is **not** a tuner app. This is an **acoustic degradation analysis engine**
 ### Platform Architecture
 ```
 Frontend:  .NET MAUI (C#) - MVVM Pattern (strict)
-Backend:   Python 3.x - NumPy, SciPy for DSP
+Backend:   Native C# DSP via FftSharp (cross-platform)
 Database:  SQLite via sqlite-net-pcl
-Bridge:    Python.NET or process interop
+Legacy:    Python engine retained for reference/desktop debugging
 ```
 
 ### Directory Structure
@@ -39,10 +39,17 @@ SonicDecayAnalyzer/
 │   │   ├── ViewModels/          # MVVM business logic
 │   │   ├── Views/               # XAML layouts
 │   │   ├── Services/            # Audio capture, DB access
+│   │   │   ├── Interfaces/      # Service contracts
+│   │   │   ├── Implementations/ # Service implementations
+│   │   │   └── Spectral/        # Native C# DSP (FftSharp)
+│   │   │       ├── WindowFunctions.cs   # Hamming/Hann/Blackman
+│   │   │       ├── FftProcessor.cs      # FFT computation
+│   │   │       └── SpectralMetrics.cs   # Centroid, HF ratio, decay
 │   │   └── Platforms/           # iOS/Android/Windows specifics
 │   │
-│   ├── SonicDecay.Engine/       # Python DSP Backend
+│   ├── SonicDecay.Engine/       # Python DSP (reference/desktop fallback)
 │   │   ├── analysis.py          # FFT & metric extraction
+│   │   ├── spectral.py          # Metric calculations
 │   │   ├── requirements.txt     # NumPy, SciPy dependencies
 │   │   └── tests/               # Algorithm validation
 │   │
@@ -244,13 +251,14 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 - RMS threshold trigger for automatic analysis start
 - Platform-specific implementations (iOS/Android/Windows)
 
-### Phase 3: Python Engine Integration ✓
-**Status**: Completed  
+### Phase 3: Spectral Analysis Engine ✓
+**Status**: Completed (ported to native C#)
 **Deliverables**:
-- FFT implementation with windowing (Hamming/Hann)
+- FFT implementation with windowing (Hamming/Hann/Blackman) via FftSharp
 - Spectral Centroid calculation: `Σ(f[i] × magnitude[i]) / Σ(magnitude[i])`
 - HF Energy Ratio: `Σ(magnitude[5kHz:15kHz]) / magnitude[f₀]`
-- C#↔Python bridge with error handling
+- Native `NativeAnalysisService` for cross-platform support (iOS/Android/Windows/macOS)
+- Python engine retained as reference implementation and desktop fallback
 - Automated metric persistence to `MeasurementLog`
 
 ### Phase 4: MVVM Presentation Layer ✓
@@ -303,22 +311,24 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 
 ## Integration Constraints
 
-### C# ↔ Python Communication
+### Spectral Analysis Implementation
 
-**Option A: Python.NET** (Preferred)
-- In-process execution
-- Direct memory sharing
-- Type safety via .NET bindings
+**Primary: Native C# (NativeAnalysisService)**
+- Cross-platform compatible (iOS, Android, Windows, macOS)
+- Uses FftSharp library (MIT license, .NET Standard)
+- No external dependencies or subprocess management
+- Registered as default `IAnalysisService` in DI
 
-**Option B: Process Interop** (Fallback)
-- JSON-based message passing
-- Subprocess management
-- Error stream capture
+**Fallback: Python Subprocess (AnalysisService)**
+- Desktop-only (Windows, macOS)
+- JSON-based message passing via CLI
+- Useful for debugging and reference validation
+- Swap via `MauiProgram.cs` DI registration
 
 ### Error Handling Strategy
 
 - **Audio Capture**: Graceful degradation to lower sample rates
-- **Python Engine**: Timeout detection with rollback
+- **Analysis Engine**: Timeout detection with cancellation token support
 - **Database**: Transactional integrity with retry logic
 - **UI**: Non-blocking async operations with loading indicators
 
@@ -330,15 +340,19 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 - Repository CRUD operations
 - ViewModel state transitions
 - Service layer isolation tests
+- Spectral analysis classes (`WindowFunctions`, `FftProcessor`, `SpectralMetrics`)
+- `NativeAnalysisService` end-to-end pipeline
 
 ### Integration Tests
 - End-to-end audio capture → analysis → persistence
 - Cross-platform permission handling
 - Database schema migrations
 
-### Algorithm Validation (Python)
-- FFT accuracy with known sine waves
-- Centroid calculation against reference implementations
+### Algorithm Validation
+- FFT accuracy with known sine waves (compare C# vs Python)
+- Centroid calculation cross-validation (tolerance: ±1 Hz)
+- HF Energy Ratio cross-validation (tolerance: ±0.001)
+- Decay Percentage cross-validation (tolerance: ±0.1%)
 - Edge cases: silence, clipping, noise
 
 ---
@@ -366,7 +380,7 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 - Use async/await for all I/O operations
 - Implement proper IDisposable for audio resources
 - Validate all user inputs before database writes
-- Log all Python engine errors to diagnostic stream
+- Log all analysis engine errors to diagnostic stream
 
 ---
 
@@ -445,7 +459,8 @@ When working with this project:
 **Recent Decisions**:
 - Chose 48kHz sample rate for headroom in harmonic analysis
 - Selected RMS threshold over zero-crossing for trigger reliability
-- Prioritized Python.NET over subprocess for latency requirements
+- Ported Python DSP to native C# via FftSharp for mobile platform support
+- Selected FftSharp library (MIT, .NET Standard, ~50KB) for FFT computation
 - Selected LiveCharts2 (SkiaSharp) for cross-platform chart rendering
 - Guitar-StringSet pairing uses junction table with active flag constraint
 
@@ -463,6 +478,6 @@ Code should reflect **GTA Industry-ready** standards: production-grade, maintain
 
 ---
 
-*Last Updated: 2026-01-24*  
+*Last Updated: 2026-01-25*  
 *Maintained by: Project Architect*  
 *For AI Assistant Context: This document defines the complete technical contract for the Sonic Decay Analyzer project.*

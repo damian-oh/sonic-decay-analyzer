@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<linker>
+  <!-- Preserve FftSharp assembly completely (FFT library with trim warnings) -->
+  <assembly fullname="FftSharp" preserve="all" />
+
+  <!-- Preserve System.Numerics for Complex number support used by FftSharp -->
+  <assembly fullname="System.Numerics" preserve="all" />
+  <assembly fullname="System.Numerics.Vectors" preserve="all" />
+  <assembly fullname="System.Runtime.Numerics" preserve="all" />
+
+  <!-- Preserve LiveCharts assemblies (also have trim warnings) -->
+  <assembly fullname="LiveChartsCore" preserve="all" />
+  <assembly fullname="LiveChartsCore.SkiaSharpView" preserve="all" />
+  <assembly fullname="LiveChartsCore.SkiaSharpView.Maui" preserve="all" />
+
+  <!-- Preserve SkiaSharp assemblies -->
+  <assembly fullname="SkiaSharp" preserve="all" />
+  <assembly fullname="SkiaSharp.Views.Android" preserve="all" />
+  <assembly fullname="SkiaSharp.Views.Maui.Controls" preserve="all" />
+  <assembly fullname="SkiaSharp.Views.Maui.Core" preserve="all" />
+  <assembly fullname="HarfBuzzSharp" preserve="all" />
+
+  <!-- Preserve SQLite assemblies -->
+  <assembly fullname="SQLite-net" preserve="all" />
+  <assembly fullname="SQLitePCLRaw.core" preserve="all" />
+  <assembly fullname="SQLitePCLRaw.batteries_v2" preserve="all" />
+
+  <!-- Preserve our spectral analysis services -->
+  <assembly fullname="SonicDecay.App">
+    <type fullname="SonicDecay.App.Services.Spectral.*" preserve="all" />
+    <type fullname="SonicDecay.App.Services.Implementations.NativeAnalysisService" preserve="all" />
+    <type fullname="SonicDecay.App.Services.Implementations.AnalysisService" preserve="all" />
+    <type fullname="SonicDecay.App.Services.Implementations.PythonEnginePool*" preserve="all" />
+    <type fullname="SonicDecay.App.ViewModels.*" preserve="all" />
+    <type fullname="SonicDecay.App.Models.*" preserve="all" />
+  </assembly>
+</linker>
