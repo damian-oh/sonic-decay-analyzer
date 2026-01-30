@@ -60,6 +60,7 @@ namespace SonicDecay.App
 
             // Register ViewModels
             builder.Services.AddTransient<MainViewModel>();
+            builder.Services.AddTransient<LibraryViewModel>();
             builder.Services.AddTransient<StringInputViewModel>();
             builder.Services.AddTransient<GuitarInputViewModel>();
             builder.Services.AddTransient<DecayChartViewModel>();
@@ -67,6 +68,7 @@ namespace SonicDecay.App
 
             // Register Views (with ViewModel injection)
             builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<LibraryPage>();
             builder.Services.AddTransient<StringInputPage>();
             builder.Services.AddTransient<GuitarInputPage>();
             builder.Services.AddTransient<DecayChartPage>();

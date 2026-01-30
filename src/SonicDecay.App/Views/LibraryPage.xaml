@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SonicDecay.App.ViewModels"
+             x:Class="SonicDecay.App.Views.LibraryPage"
+             x:DataType="vm:LibraryViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="12">
+            <Label Text="Manage guitars, string sets, and installations."
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                   HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1" Margin="0,16,0,0">
+            <VerticalStackLayout Spacing="16">
+
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                       Padding="20"
+                       CornerRadius="12"
+                       BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Guitars"
+                               FontSize="18"
+                               FontAttributes="Bold"/>
+                        <Label Text="View and edit your guitars."
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Button Text="Open Guitars"
+                                Command="{Binding NavigateToGuitarsCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"
+                                HorizontalOptions="Start"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                       Padding="20"
+                       CornerRadius="12"
+                       BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="String Sets"
+                               FontSize="18"
+                               FontAttributes="Bold"/>
+                        <Label Text="View and add custom string sets (brand, model, gauges)."
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Button Text="Open String Sets"
+                                Command="{Binding NavigateToStringSetsCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"
+                                HorizontalOptions="Start"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                       Padding="20"
+                       CornerRadius="12"
+                       BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Pairings"
+                               FontSize="18"
+                               FontAttributes="Bold"/>
+                        <Label Text="Manage which string sets are installed on each guitar."
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <Button Text="Open Pairings"
+                                Command="{Binding NavigateToPairingsCommand}"
+                                BackgroundColor="{StaticResource AnalysisAccent}"
+                                TextColor="White"
+                                HorizontalOptions="Start"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="2"
+                Text="Back"
+                Command="{Binding GoBackCommand}"
+                Margin="0,16,0,0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+
+    </Grid>
+
+</ContentPage>
