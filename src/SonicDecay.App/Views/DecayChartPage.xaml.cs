@@ -9,20 +9,11 @@ namespace SonicDecay.App.Views
     public partial class DecayChartPage : ContentPage
     {
         private readonly DecayChartViewModel _viewModel;
-        private int _baselineId;
 
         /// <summary>
-        /// Gets or sets the baseline ID passed via navigation.
+        /// Gets or sets the baseline ID passed via navigation (query string).
         /// </summary>
-        public int BaselineId
-        {
-            get => _baselineId;
-            set
-            {
-                _baselineId = value;
-                _ = _viewModel.InitializeAsync(value);
-            }
-        }
+        public string? BaselineId { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the DecayChartPage class.
@@ -33,6 +24,16 @@ namespace SonicDecay.App.Views
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = viewModel;
+        }
+
+        /// <inheritdoc />
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            if (!string.IsNullOrEmpty(BaselineId) && int.TryParse(BaselineId, out int id))
+            {
+                await _viewModel.InitializeAsync(id);
+            }
         }
     }
 }
