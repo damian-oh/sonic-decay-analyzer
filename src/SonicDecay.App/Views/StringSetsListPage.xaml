@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:SonicDecay.App.ViewModels"
+             xmlns:models="clr-namespace:SonicDecay.App.Models"
+             x:Class="SonicDecay.App.Views.StringSetsListPage"
+             x:DataType="vm:StringSetsListViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <Label Text="Your string sets"
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                   VerticalOptions="Center"/>
+            <Button Grid.Column="1"
+                    Text="Add"
+                    Command="{Binding AddStringSetCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    Padding="16,10"/>
+        </Grid>
+
+        <ScrollView Grid.Row="1" Margin="0,16,0,0">
+            <VerticalStackLayout Spacing="16">
+
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                       Padding="24"
+                       CornerRadius="12"
+                       BorderColor="Transparent"
+                       IsVisible="{Binding HasNoStringSets}">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="12">
+                        <Label Text="No String Sets"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Add a custom string set (brand, model, gauges) to use in analysis."
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                        <Button Text="Add String Set"
+                                Command="{Binding AddStringSetCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"
+                                HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <CollectionView ItemsSource="{Binding StringSets}"
+                                SelectionMode="Single"
+                                IsVisible="{Binding HasNoStringSets, Converter={StaticResource InvertedBoolConverter}}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:StringSet">
+                            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                                   Padding="16"
+                                   Margin="0,0,0,8"
+                                   CornerRadius="12"
+                                   BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding Brand}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"/>
+                                        <Label Text="{Binding Model}"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                                    </VerticalStackLayout>
+                                    <Label Grid.Column="1" Grid.RowSpan="2"
+                                           Text="›"
+                                           FontSize="24"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectStringSetCommand}"
+                                                         CommandParameter="{Binding .}"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <Button Grid.Row="2"
+                Text="Back"
+                Command="{Binding GoBackCommand}"
+                Margin="0,16,0,0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+
+        <Frame Grid.RowSpan="3"
+               BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}"
+               IsVisible="{Binding IsBusy}"
+               BorderColor="Transparent">
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               Color="{StaticResource Primary}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+        </Frame>
+
+    </Grid>
+
+</ContentPage>
