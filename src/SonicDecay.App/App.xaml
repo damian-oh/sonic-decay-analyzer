@@ -25,6 +25,7 @@
             <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
             <converters:BoolToTextColorConverter x:Key="BoolToTextColorConverter"/>
             <converters:IsNotNullConverter x:Key="IsNotNullConverter"/>
+            <converters:ExpandChevronConverter x:Key="ExpandChevronConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

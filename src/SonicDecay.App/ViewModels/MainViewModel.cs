@@ -58,6 +58,9 @@ namespace SonicDecay.App.ViewModels
         private ReplacementRecommendation? _recommendation;
         private bool _isLoadingRecommendation;
 
+        // Context section expand/collapse
+        private bool _isContextExpanded = true;
+
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
@@ -111,6 +114,8 @@ namespace SonicDecay.App.ViewModels
             RefreshRecommendationCommand = new AsyncRelayCommand(RefreshRecommendationAsync, () => SelectedBaseline != null && !IsLoadingRecommendation);
             DeletePairingCommand = new AsyncRelayCommand(DeleteSelectedPairingAsync, () => _selectedPairingItem != null && !IsCapturing);
             NavigateToPairingsCommand = new AsyncRelayCommand(NavigateToPairingsAsync);
+            NavigateToLibraryCommand = new AsyncRelayCommand(NavigateToLibraryAsync);
+            ToggleContextExpandedCommand = new RelayCommand(ToggleContextExpanded);
 
             // Subscribe to audio capture events
             _audioCaptureService.BufferCaptured += OnBufferCaptured;
@@ -137,6 +142,7 @@ namespace SonicDecay.App.ViewModels
                 {
                     _ = LoadPairingsForGuitarAsync();
                     UpdateCommandStates();
+                    OnPropertyChanged(nameof(ContextSummaryText));
                 }
             }
         }
@@ -159,6 +165,7 @@ namespace SonicDecay.App.ViewModels
                     _ = LoadStringSetFromPairingAsync();
                     OnPropertyChanged(nameof(HasPairings));
                     UpdateCommandStates();
+                    OnPropertyChanged(nameof(ContextSummaryText));
                 }
             }
         }
@@ -207,6 +214,7 @@ namespace SonicDecay.App.ViewModels
                     // Clear selected model when brand changes
                     SelectedStringSet = null;
                     UpdateCommandStates();
+                    OnPropertyChanged(nameof(ContextSummaryText));
                 }
             }
         }
@@ -224,6 +232,7 @@ namespace SonicDecay.App.ViewModels
                     _ = LoadBaselineForStringAsync();
                     _ = UpdateAllBaselineStatusAsync();
                     UpdateCommandStates();
+                    OnPropertyChanged(nameof(ContextSummaryText));
                 }
             }
         }
@@ -239,6 +248,7 @@ namespace SonicDecay.App.ViewModels
                 if (SetProperty(ref _selectedStringNumber, value))
                 {
                     _ = LoadBaselineForStringAsync();
+                    OnPropertyChanged(nameof(ContextSummaryText));
                 }
             }
         }
@@ -310,6 +320,31 @@ namespace SonicDecay.App.ViewModels
         public string BaselineStatus => HasBaseline
             ? $"Baseline: {SelectedBaseline!.InitialCentroid:F1} Hz centroid"
             : "No baseline - establish fresh string reference";
+
+        /// <summary>
+        /// Gets or sets whether the context section is expanded.
+        /// </summary>
+        public bool IsContextExpanded
+        {
+            get => _isContextExpanded;
+            set => SetProperty(ref _isContextExpanded, value);
+        }
+
+        /// <summary>
+        /// Gets a one-line summary of the current selection (guitar, string set, string number).
+        /// </summary>
+        public string ContextSummaryText
+        {
+            get
+            {
+                var guitar = SelectedGuitar?.Name ?? "—";
+                var stringSet = SelectedStringSet != null ? $"{SelectedStringSet.Brand} {SelectedStringSet.Model}" : "—";
+                var stringLabel = SelectedStringNumber >= 1 && SelectedStringNumber <= 6 && StringNumbers.Count >= SelectedStringNumber
+                    ? StringNumbers[SelectedStringNumber - 1].DisplayName
+                    : "—";
+                return $"{guitar} • {stringSet} • {stringLabel}";
+            }
+        }
 
         /// <summary>
         /// Gets or sets the current status message.
@@ -544,6 +579,16 @@ namespace SonicDecay.App.ViewModels
         /// Command to navigate to the pairings management page.
         /// </summary>
         public ICommand NavigateToPairingsCommand { get; }
+
+        /// <summary>
+        /// Command to navigate to the library hub page.
+        /// </summary>
+        public ICommand NavigateToLibraryCommand { get; }
+
+        /// <summary>
+        /// Command to toggle the context section expanded/collapsed state.
+        /// </summary>
+        public ICommand ToggleContextExpandedCommand { get; }
 
         #endregion
 
@@ -838,6 +883,16 @@ namespace SonicDecay.App.ViewModels
         private async Task NavigateToPairingsAsync()
         {
             await Shell.Current.GoToAsync("PairingsManagementPage");
+        }
+
+        private async Task NavigateToLibraryAsync()
+        {
+            await Shell.Current.GoToAsync("LibraryPage");
+        }
+
+        private void ToggleContextExpanded()
+        {
+            IsContextExpanded = !IsContextExpanded;
         }
 
         private async Task NavigateToChartAsync()

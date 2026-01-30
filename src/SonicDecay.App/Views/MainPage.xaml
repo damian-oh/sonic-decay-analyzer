@@ -9,225 +9,182 @@
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="16">
 
-        <!-- Header Section -->
+        <!-- Header Section: Collapsible Context -->
         <VerticalStackLayout Grid.Row="0" Spacing="8">
-
-            <!-- Guitar Selection -->
             <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
                    Padding="12"
                    CornerRadius="8"
                    BorderColor="Transparent">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <Picker Grid.Column="0"
-                            Title="Select Guitar"
-                            ItemsSource="{Binding Guitars}"
-                            SelectedItem="{Binding SelectedGuitar}"
-                            ItemDisplayBinding="{Binding Name}"
-                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
-
-                    <Button Grid.Column="1"
-                            Text="+"
-                            WidthRequest="44"
-                            HeightRequest="44"
-                            Command="{Binding NavigateToGuitarInputCommand}"
-                            SemanticProperties.Hint="Add guitar"/>
-                </Grid>
-            </Frame>
-
-            <!-- String Set Pairing Selection -->
-            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                   Padding="12"
-                   CornerRadius="8"
-                   BorderColor="Transparent"
-                   IsVisible="{Binding HasPairings}">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                    <Picker Grid.Column="0"
-                            Title="Select String Set Installation"
-                            ItemsSource="{Binding AvailablePairings}"
-                            SelectedItem="{Binding SelectedPairing}"
-                            ItemDisplayBinding="{Binding DisplayName}"
-                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
-
-                    <Button Grid.Column="1"
-                            Text="×"
-                            FontSize="24"
-                            WidthRequest="44"
-                            HeightRequest="44"
-                            Command="{Binding DeletePairingCommand}"
-                            BackgroundColor="{StaticResource HealthReplace}"
-                            TextColor="White"
-                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"
-                            SemanticProperties.Hint="Delete selected string set pairing"/>
-                </Grid>
-            </Frame>
-
-            <!-- String Set Selection -->
-            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                   Padding="12"
-                   CornerRadius="8"
-                   BorderColor="Transparent">
-                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-
-                    <!-- Brand Picker -->
-                    <Picker Grid.Row="0" Grid.Column="0"
-                            Title="Select Brand"
-                            ItemsSource="{Binding AvailableBrands}"
-                            SelectedItem="{Binding SelectedBrand}"
-                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
-
-                    <Button Grid.Row="0" Grid.Column="1"
-                            Text="+"
-                            WidthRequest="44"
-                            HeightRequest="44"
-                            Command="{Binding NavigateToStringInputCommand}"
-                            SemanticProperties.Hint="Add custom string set"/>
-
-                    <!-- Model Picker (filtered by brand) -->
-                    <Picker Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                            Title="Select Model"
-                            ItemsSource="{Binding FilteredModels}"
-                            SelectedItem="{Binding SelectedStringSet}"
-                            ItemDisplayBinding="{Binding Model}"
-                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
-
-                    <!-- String Number Picker -->
-                    <Picker Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                            Title="Select String"
-                            ItemsSource="{Binding StringNumbers}"
-                            SelectedIndex="{Binding SelectedStringNumber, Converter={StaticResource StringNumberIndexConverter}}"
-                            IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
-                </Grid>
-            </Frame>
-
-            <!-- Baseline Status Indicators for All Strings -->
-            <Frame BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
-                   Padding="12"
-                   CornerRadius="8"
-                   BorderColor="Transparent"
-                   IsVisible="{Binding SelectedStringSet, Converter={StaticResource IsNotNullConverter}}">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Baseline Status"
-                           FontSize="12"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
-                    <Grid ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="4">
-                        <!-- String 1 - High E -->
-                        <Frame Grid.Column="0"
-                               Padding="8,4"
-                               CornerRadius="6"
-                               BorderColor="{Binding StringNumbers[0].StatusColor}"
-                               BackgroundColor="Transparent"
-                               HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding StringNumbers[0].StatusIcon}"
-                                       FontSize="14"
-                                       TextColor="{Binding StringNumbers[0].StatusColor}"
-                                       HorizontalOptions="Center"/>
-                                <Label Text="E1"
-                                       FontSize="10"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       HorizontalOptions="Center"/>
-                            </VerticalStackLayout>
-                        </Frame>
-                        <!-- String 2 - B -->
-                        <Frame Grid.Column="1"
-                               Padding="8,4"
-                               CornerRadius="6"
-                               BorderColor="{Binding StringNumbers[1].StatusColor}"
-                               BackgroundColor="Transparent"
-                               HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding StringNumbers[1].StatusIcon}"
-                                       FontSize="14"
-                                       TextColor="{Binding StringNumbers[1].StatusColor}"
-                                       HorizontalOptions="Center"/>
-                                <Label Text="B2"
-                                       FontSize="10"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       HorizontalOptions="Center"/>
-                            </VerticalStackLayout>
-                        </Frame>
-                        <!-- String 3 - G -->
-                        <Frame Grid.Column="2"
-                               Padding="8,4"
-                               CornerRadius="6"
-                               BorderColor="{Binding StringNumbers[2].StatusColor}"
-                               BackgroundColor="Transparent"
-                               HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding StringNumbers[2].StatusIcon}"
-                                       FontSize="14"
-                                       TextColor="{Binding StringNumbers[2].StatusColor}"
-                                       HorizontalOptions="Center"/>
-                                <Label Text="G3"
-                                       FontSize="10"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       HorizontalOptions="Center"/>
-                            </VerticalStackLayout>
-                        </Frame>
-                        <!-- String 4 - D -->
-                        <Frame Grid.Column="3"
-                               Padding="8,4"
-                               CornerRadius="6"
-                               BorderColor="{Binding StringNumbers[3].StatusColor}"
-                               BackgroundColor="Transparent"
-                               HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding StringNumbers[3].StatusIcon}"
-                                       FontSize="14"
-                                       TextColor="{Binding StringNumbers[3].StatusColor}"
-                                       HorizontalOptions="Center"/>
-                                <Label Text="D4"
-                                       FontSize="10"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       HorizontalOptions="Center"/>
-                            </VerticalStackLayout>
-                        </Frame>
-                        <!-- String 5 - A -->
-                        <Frame Grid.Column="4"
-                               Padding="8,4"
-                               CornerRadius="6"
-                               BorderColor="{Binding StringNumbers[4].StatusColor}"
-                               BackgroundColor="Transparent"
-                               HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding StringNumbers[4].StatusIcon}"
-                                       FontSize="14"
-                                       TextColor="{Binding StringNumbers[4].StatusColor}"
-                                       HorizontalOptions="Center"/>
-                                <Label Text="A5"
-                                       FontSize="10"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       HorizontalOptions="Center"/>
-                            </VerticalStackLayout>
-                        </Frame>
-                        <!-- String 6 - Low E -->
-                        <Frame Grid.Column="5"
-                               Padding="8,4"
-                               CornerRadius="6"
-                               BorderColor="{Binding StringNumbers[5].StatusColor}"
-                               BackgroundColor="Transparent"
-                               HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
-                                <Label Text="{Binding StringNumbers[5].StatusIcon}"
-                                       FontSize="14"
-                                       TextColor="{Binding StringNumbers[5].StatusColor}"
-                                       HorizontalOptions="Center"/>
-                                <Label Text="E6"
-                                       FontSize="10"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       HorizontalOptions="Center"/>
-                            </VerticalStackLayout>
-                        </Frame>
+                <VerticalStackLayout Spacing="0">
+                    <!-- Tappable header: tap toggles expand/collapse -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"
+                          x:Name="ContextHeader">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleContextExpandedCommand}"/>
+                        </Grid.GestureRecognizers>
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Selection"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                            <Label Text="{Binding ContextSummaryText}"
+                                   FontSize="14"
+                                   LineBreakMode="TailTruncation"
+                                   MaximumWidthRequest="400"/>
+                        </VerticalStackLayout>
+                        <Label Grid.Column="1"
+                               Text="{Binding IsContextExpanded, Converter={StaticResource ExpandChevronConverter}}"
+                               FontSize="16"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                               VerticalOptions="Center"/>
                     </Grid>
+                    <!-- Content: visible when expanded -->
+                    <VerticalStackLayout Spacing="8" Margin="0,12,0,0"
+                                         IsVisible="{Binding IsContextExpanded}">
+
+                        <!-- Guitar Selection -->
+                        <Frame BackgroundColor="Transparent"
+                               Padding="0"
+                               CornerRadius="8"
+                               BorderColor="Transparent">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <Picker Grid.Column="0"
+                                        Title="Select Guitar"
+                                        ItemsSource="{Binding Guitars}"
+                                        SelectedItem="{Binding SelectedGuitar}"
+                                        ItemDisplayBinding="{Binding Name}"
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                                <Button Grid.Column="1"
+                                        Text="+"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        Command="{Binding NavigateToGuitarInputCommand}"
+                                        SemanticProperties.Hint="Add guitar"/>
+                            </Grid>
+                        </Frame>
+
+                        <!-- String Set Pairing Selection -->
+                        <Frame BackgroundColor="Transparent"
+                               Padding="0"
+                               CornerRadius="8"
+                               BorderColor="Transparent"
+                               IsVisible="{Binding HasPairings}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <Picker Grid.Column="0"
+                                        Title="Select String Set Installation"
+                                        ItemsSource="{Binding AvailablePairings}"
+                                        SelectedItem="{Binding SelectedPairing}"
+                                        ItemDisplayBinding="{Binding DisplayName}"
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                                <Button Grid.Column="1"
+                                        Text="×"
+                                        FontSize="24"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        Command="{Binding DeletePairingCommand}"
+                                        BackgroundColor="{StaticResource HealthReplace}"
+                                        TextColor="White"
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"
+                                        SemanticProperties.Hint="Delete selected string set pairing"/>
+                            </Grid>
+                        </Frame>
+
+                        <!-- String Set Selection -->
+                        <Frame BackgroundColor="Transparent"
+                               Padding="0"
+                               CornerRadius="8"
+                               BorderColor="Transparent">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+
+                                <Picker Grid.Row="0" Grid.Column="0"
+                                        Title="Select Brand"
+                                        ItemsSource="{Binding AvailableBrands}"
+                                        SelectedItem="{Binding SelectedBrand}"
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                                <Button Grid.Row="0" Grid.Column="1"
+                                        Text="+"
+                                        WidthRequest="44"
+                                        HeightRequest="44"
+                                        Command="{Binding NavigateToStringInputCommand}"
+                                        SemanticProperties.Hint="Add custom string set"/>
+
+                                <Picker Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                        Title="Select Model"
+                                        ItemsSource="{Binding FilteredModels}"
+                                        SelectedItem="{Binding SelectedStringSet}"
+                                        ItemDisplayBinding="{Binding Model}"
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                                <Picker Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                        Title="Select String"
+                                        ItemsSource="{Binding StringNumbers}"
+                                        SelectedIndex="{Binding SelectedStringNumber, Converter={StaticResource StringNumberIndexConverter}}"
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+                            </Grid>
+                        </Frame>
+
+                        <!-- Baseline Status Indicators for All Strings -->
+                        <Frame BackgroundColor="Transparent"
+                               Padding="0"
+                               CornerRadius="8"
+                               BorderColor="Transparent"
+                               IsVisible="{Binding SelectedStringSet, Converter={StaticResource IsNotNullConverter}}">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Baseline Status"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                                <Grid ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="4">
+                                    <Frame Grid.Column="0" Padding="8,4" CornerRadius="6" BorderColor="{Binding StringNumbers[0].StatusColor}" BackgroundColor="Transparent" HorizontalOptions="Center">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding StringNumbers[0].StatusIcon}" FontSize="14" TextColor="{Binding StringNumbers[0].StatusColor}" HorizontalOptions="Center"/>
+                                            <Label Text="E1" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" HorizontalOptions="Center"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame Grid.Column="1" Padding="8,4" CornerRadius="6" BorderColor="{Binding StringNumbers[1].StatusColor}" BackgroundColor="Transparent" HorizontalOptions="Center">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding StringNumbers[1].StatusIcon}" FontSize="14" TextColor="{Binding StringNumbers[1].StatusColor}" HorizontalOptions="Center"/>
+                                            <Label Text="B2" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" HorizontalOptions="Center"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame Grid.Column="2" Padding="8,4" CornerRadius="6" BorderColor="{Binding StringNumbers[2].StatusColor}" BackgroundColor="Transparent" HorizontalOptions="Center">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding StringNumbers[2].StatusIcon}" FontSize="14" TextColor="{Binding StringNumbers[2].StatusColor}" HorizontalOptions="Center"/>
+                                            <Label Text="G3" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" HorizontalOptions="Center"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame Grid.Column="3" Padding="8,4" CornerRadius="6" BorderColor="{Binding StringNumbers[3].StatusColor}" BackgroundColor="Transparent" HorizontalOptions="Center">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding StringNumbers[3].StatusIcon}" FontSize="14" TextColor="{Binding StringNumbers[3].StatusColor}" HorizontalOptions="Center"/>
+                                            <Label Text="D4" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" HorizontalOptions="Center"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame Grid.Column="4" Padding="8,4" CornerRadius="6" BorderColor="{Binding StringNumbers[4].StatusColor}" BackgroundColor="Transparent" HorizontalOptions="Center">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding StringNumbers[4].StatusIcon}" FontSize="14" TextColor="{Binding StringNumbers[4].StatusColor}" HorizontalOptions="Center"/>
+                                            <Label Text="A5" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" HorizontalOptions="Center"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame Grid.Column="5" Padding="8,4" CornerRadius="6" BorderColor="{Binding StringNumbers[5].StatusColor}" BackgroundColor="Transparent" HorizontalOptions="Center">
+                                        <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                                            <Label Text="{Binding StringNumbers[5].StatusIcon}" FontSize="14" TextColor="{Binding StringNumbers[5].StatusColor}" HorizontalOptions="Center"/>
+                                            <Label Text="E6" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" HorizontalOptions="Center"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <Label Text="{Binding BaselineStatus}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Frame>
-
-            <!-- Current Baseline Status -->
-            <Label Text="{Binding BaselineStatus}"
-                   FontSize="12"
-                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                   HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
         <!-- Main Analysis Display -->
@@ -503,32 +460,14 @@
                     </VerticalStackLayout>
                 </Frame>
 
-                <!-- Quick Navigation -->
-                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
-                       Padding="16"
-                       CornerRadius="12"
-                       BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
-                    <VerticalStackLayout Spacing="12">
-                        <Label Text="Quick Navigation"
-                               FontSize="14"
-                               FontAttributes="Bold"/>
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                            <Button Text="Manage Pairings"
-                                    FontSize="12"
-                                    Padding="12,10"
-                                    Command="{Binding NavigateToPairingsCommand}"
-                                    BackgroundColor="{StaticResource AnalysisAccent}"
-                                    TextColor="White"/>
-                            <Button Grid.Column="1"
-                                    Text="Add String Set"
-                                    FontSize="12"
-                                    Padding="12,10"
-                                    Command="{Binding NavigateToStringInputCommand}"
-                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
-                        </Grid>
-                    </VerticalStackLayout>
-                </Frame>
+                <!-- Library shortcut -->
+                <Button Text="Library"
+                        FontSize="14"
+                        Padding="16,12"
+                        Command="{Binding NavigateToLibraryCommand}"
+                        BackgroundColor="{StaticResource AnalysisAccent}"
+                        TextColor="White"
+                        SemanticProperties.Hint="Open library to manage guitars, string sets, and pairings"/>
 
             </VerticalStackLayout>
         </ScrollView>

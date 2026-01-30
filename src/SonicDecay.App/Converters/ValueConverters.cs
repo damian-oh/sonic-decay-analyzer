@@ -322,4 +322,25 @@ namespace SonicDecay.App.Converters
             throw new NotSupportedException();
         }
     }
+
+    /// <summary>
+    /// Converts IsContextExpanded boolean to chevron character for expand/collapse indicator.
+    /// Returns down-pointing chevron when expanded, right-pointing when collapsed.
+    /// </summary>
+    public class ExpandChevronConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is bool isExpanded)
+            {
+                return isExpanded ? "▼" : "▶";
+            }
+            return "▶";
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }
