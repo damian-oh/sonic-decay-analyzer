@@ -5,9 +5,15 @@ namespace SonicDecay.App.Views
     /// <summary>
     /// Page for creating and editing guitars.
     /// </summary>
+    [QueryProperty(nameof(GuitarId), "guitarId")]
     public partial class GuitarInputPage : ContentPage
     {
         private readonly GuitarInputViewModel _viewModel;
+
+        /// <summary>
+        /// Gets or sets the guitar ID for editing (passed via navigation).
+        /// </summary>
+        public string? GuitarId { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the GuitarInputPage class.
@@ -26,7 +32,16 @@ namespace SonicDecay.App.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            _viewModel.Reset();
+
+            if (!string.IsNullOrEmpty(GuitarId) && int.TryParse(GuitarId, out int id))
+            {
+                await _viewModel.LoadForEditAsync(id);
+            }
+            else
+            {
+                _viewModel.Reset();
+            }
+
             await _viewModel.InitializeAsync();
         }
     }

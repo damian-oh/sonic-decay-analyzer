@@ -16,6 +16,8 @@ namespace SonicDecay.App
 
             // Register routes for navigation
             Routing.RegisterRoute("LibraryPage", typeof(LibraryPage));
+            Routing.RegisterRoute("GuitarsListPage", typeof(GuitarsListPage));
+            Routing.RegisterRoute("StringSetsListPage", typeof(StringSetsListPage));
             Routing.RegisterRoute("StringInputPage", typeof(StringInputPage));
             Routing.RegisterRoute("GuitarInputPage", typeof(GuitarInputPage));
             Routing.RegisterRoute("DecayChartPage", typeof(DecayChartPage));
