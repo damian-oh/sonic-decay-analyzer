@@ -118,32 +118,20 @@ namespace SonicDecay.App.Services.Implementations
         public async Task<int> DeleteByGuitarIdAsync(int guitarId)
         {
             await _databaseService.InitializeAsync();
-            var pairings = await GetByGuitarIdAsync(guitarId);
-            var count = 0;
-
-            foreach (var pairing in pairings)
-            {
-                count += await _databaseService.Connection
-                    .DeleteAsync<GuitarStringSetPairing>(pairing.Id);
-            }
-
-            return count;
+            // Use batch SQL delete for O(1) instead of O(N) individual deletes
+            return await _databaseService.Connection.ExecuteAsync(
+                "DELETE FROM GuitarStringSetPairings WHERE GuitarId = ?",
+                guitarId);
         }
 
         /// <inheritdoc />
         public async Task<int> DeleteBySetIdAsync(int setId)
         {
             await _databaseService.InitializeAsync();
-            var pairings = await GetBySetIdAsync(setId);
-            var count = 0;
-
-            foreach (var pairing in pairings)
-            {
-                count += await _databaseService.Connection
-                    .DeleteAsync<GuitarStringSetPairing>(pairing.Id);
-            }
-
-            return count;
+            // Use batch SQL delete for O(1) instead of O(N) individual deletes
+            return await _databaseService.Connection.ExecuteAsync(
+                "DELETE FROM GuitarStringSetPairings WHERE SetId = ?",
+                setId);
         }
 
         /// <inheritdoc />

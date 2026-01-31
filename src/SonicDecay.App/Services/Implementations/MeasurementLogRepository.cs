@@ -79,18 +79,10 @@ namespace SonicDecay.App.Services.Implementations
         {
             await _databaseService.InitializeAsync();
 
-            // Get all logs for this baseline
-            var logs = await GetByBaselineIdAsync(baselineId);
-
-            // Delete each log
-            var deleteCount = 0;
-            foreach (var log in logs)
-            {
-                deleteCount += await _databaseService.Connection
-                    .DeleteAsync<MeasurementLog>(log.Id);
-            }
-
-            return deleteCount;
+            // Use batch SQL delete for O(1) instead of O(N) individual deletes
+            return await _databaseService.Connection.ExecuteAsync(
+                "DELETE FROM MeasurementLogs WHERE BaselineId = ?",
+                baselineId);
         }
 
         /// <inheritdoc />
