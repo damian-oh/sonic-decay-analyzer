@@ -14,7 +14,7 @@ namespace SonicDecay.App.Services.Implementations
 
         private readonly SQLiteAsyncConnection _connection;
         private readonly SemaphoreSlim _initializationLock = new(1, 1);
-        private bool _isInitialized;
+        private volatile bool _isInitialized;
 
         /// <inheritdoc />
         public SQLiteAsyncConnection Connection => _connection;
