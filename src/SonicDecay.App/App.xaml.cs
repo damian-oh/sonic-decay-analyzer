@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SonicDecay.App.Services.Interfaces;
 
 namespace SonicDecay.App
@@ -18,15 +19,28 @@ namespace SonicDecay.App
         {
             InitializeComponent();
             _seedDataService = seedDataService ?? throw new ArgumentNullException(nameof(seedDataService));
-
-            // Seed database with preset string sets on startup
-            Task.Run(async () => await _seedDataService.SeedIfEmptyAsync());
         }
 
         /// <inheritdoc />
         protected override Window CreateWindow(IActivationState? activationState)
         {
             return new Window(new AppShell());
+        }
+
+        /// <inheritdoc />
+        protected override async void OnStart()
+        {
+            base.OnStart();
+
+            try
+            {
+                await _seedDataService.SeedIfEmptyAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't crash the app - seed data is not critical for startup
+                Debug.WriteLine($"[App] Failed to seed database: {ex.Message}");
+            }
         }
     }
 }
