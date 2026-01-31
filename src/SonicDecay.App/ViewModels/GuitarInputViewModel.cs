@@ -14,6 +14,7 @@ namespace SonicDecay.App.ViewModels
         private readonly IGuitarRepository _guitarRepository;
         private readonly IGuitarStringSetPairingRepository _pairingRepository;
         private readonly IStringSetRepository _stringSetRepository;
+        private readonly SemaphoreSlim _initializationLock = new(1, 1);
 
         private string _name = string.Empty;
         private string? _make;
@@ -192,13 +193,15 @@ namespace SonicDecay.App.ViewModels
         /// <summary>
         /// Initializes the ViewModel by loading available string sets.
         /// Call this from the page's OnAppearing event.
+        /// Thread-safe: uses semaphore to prevent race conditions with LoadForEditAsync.
         /// </summary>
         public async Task InitializeAsync()
         {
-            IsBusy = true;
-
+            await _initializationLock.WaitAsync();
             try
             {
+                IsBusy = true;
+
                 var stringSets = await _stringSetRepository.GetAllAsync();
                 AvailableStringSets.Clear();
                 foreach (var set in stringSets)
@@ -213,19 +216,22 @@ namespace SonicDecay.App.ViewModels
             finally
             {
                 IsBusy = false;
+                _initializationLock.Release();
             }
         }
 
         /// <summary>
         /// Loads an existing guitar for editing.
+        /// Thread-safe: uses semaphore to prevent race conditions with InitializeAsync.
         /// </summary>
         /// <param name="guitarId">The ID of the guitar to edit.</param>
         public async Task LoadForEditAsync(int guitarId)
         {
-            IsBusy = true;
-
+            await _initializationLock.WaitAsync();
             try
             {
+                IsBusy = true;
+
                 var guitar = await _guitarRepository.GetByIdAsync(guitarId);
                 if (guitar != null)
                 {
@@ -253,6 +259,7 @@ namespace SonicDecay.App.ViewModels
             finally
             {
                 IsBusy = false;
+                _initializationLock.Release();
             }
         }
 
