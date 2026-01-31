@@ -195,16 +195,26 @@ namespace SonicDecay.App.Services.Implementations
 
         /// <summary>
         /// Converts float array to double array for FFT processing.
+        /// Invalid values (NaN, Infinity) are replaced with 0.0 (silence).
         /// </summary>
         /// <param name="samples">Input float samples.</param>
-        /// <returns>Double array with same values.</returns>
+        /// <returns>Double array with sanitized values.</returns>
         private static double[] ConvertToDouble(float[] samples)
         {
             double[] result = new double[samples.Length];
 
             for (int i = 0; i < samples.Length; i++)
             {
-                result[i] = samples[i];
+                float sample = samples[i];
+                // Replace invalid audio samples with silence
+                if (float.IsNaN(sample) || float.IsInfinity(sample))
+                {
+                    result[i] = 0.0;
+                }
+                else
+                {
+                    result[i] = sample;
+                }
             }
 
             return result;

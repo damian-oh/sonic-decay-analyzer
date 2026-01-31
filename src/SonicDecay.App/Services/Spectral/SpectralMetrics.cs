@@ -39,11 +39,19 @@ namespace SonicDecay.App.Services.Spectral
             for (int i = 0; i < magnitudes.Length; i++)
             {
                 double freq = frequencies[i];
+                double mag = magnitudes[i];
+
+                // Skip invalid values
+                if (double.IsNaN(freq) || double.IsInfinity(freq) ||
+                    double.IsNaN(mag) || double.IsInfinity(mag))
+                {
+                    continue;
+                }
 
                 if (freq >= freqMin && freq <= freqMax)
                 {
-                    weightedSum += freq * magnitudes[i];
-                    magnitudeSum += magnitudes[i];
+                    weightedSum += freq * mag;
+                    magnitudeSum += mag;
                 }
             }
 
@@ -52,7 +60,15 @@ namespace SonicDecay.App.Services.Spectral
                 return 0.0;
             }
 
-            return weightedSum / magnitudeSum;
+            double result = weightedSum / magnitudeSum;
+
+            // Guard against NaN/Infinity in result
+            if (double.IsNaN(result) || double.IsInfinity(result))
+            {
+                return 0.0;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -129,18 +145,32 @@ namespace SonicDecay.App.Services.Spectral
         /// <returns>
         /// Decay percentage (0-100+). Positive values indicate darkening.
         /// Can exceed 100% in extreme degradation cases.
+        /// Returns 0.0 for invalid inputs (NaN, Infinity, or non-positive baseline).
         /// </returns>
         /// <remarks>
         /// Decay% = (Initial - Current) / Initial * 100
         /// </remarks>
         public static double CalculateDecay(double initialCentroid, double currentCentroid)
         {
-            if (initialCentroid <= 0)
+            // Guard against invalid inputs
+            if (initialCentroid <= 0 ||
+                double.IsNaN(initialCentroid) ||
+                double.IsInfinity(initialCentroid) ||
+                double.IsNaN(currentCentroid) ||
+                double.IsInfinity(currentCentroid))
             {
                 return 0.0;
             }
 
-            return ((initialCentroid - currentCentroid) / initialCentroid) * 100.0;
+            double result = ((initialCentroid - currentCentroid) / initialCentroid) * 100.0;
+
+            // Guard against NaN/Infinity in result
+            if (double.IsNaN(result) || double.IsInfinity(result))
+            {
+                return 0.0;
+            }
+
+            return result;
         }
 
         /// <summary>

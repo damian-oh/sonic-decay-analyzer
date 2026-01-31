@@ -109,6 +109,14 @@ namespace SonicDecay.App.Services.Spectral
         private static void GenerateHamming(double[] window)
         {
             int n = window.Length;
+
+            // Guard against division by zero for single-sample windows
+            if (n == 1)
+            {
+                window[0] = 1.0;
+                return;
+            }
+
             double denominator = n - 1;
 
             for (int i = 0; i < n; i++)
@@ -124,6 +132,14 @@ namespace SonicDecay.App.Services.Spectral
         private static void GenerateHann(double[] window)
         {
             int n = window.Length;
+
+            // Guard against division by zero for single-sample windows
+            if (n == 1)
+            {
+                window[0] = 1.0;
+                return;
+            }
+
             double denominator = n - 1;
 
             for (int i = 0; i < n; i++)
@@ -139,6 +155,14 @@ namespace SonicDecay.App.Services.Spectral
         private static void GenerateBlackman(double[] window)
         {
             int n = window.Length;
+
+            // Guard against division by zero for single-sample windows
+            if (n == 1)
+            {
+                window[0] = 1.0;
+                return;
+            }
+
             double denominator = n - 1;
 
             for (int i = 0; i < n; i++)
