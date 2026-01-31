@@ -35,30 +35,71 @@ Legacy:    Python engine retained for reference/desktop debugging
 SonicDecayAnalyzer/
 ├── src/
 │   ├── SonicDecay.App/          # C# MAUI Frontend
-│   │   ├── Models/              # Data entities
-│   │   ├── ViewModels/          # MVVM business logic
-│   │   ├── Views/               # XAML layouts
+│   │   ├── Models/              # Data entities (5 models)
+│   │   │   ├── Guitar.cs
+│   │   │   ├── GuitarStringSetPairing.cs
+│   │   │   ├── StringSet.cs
+│   │   │   ├── StringBaseline.cs
+│   │   │   └── MeasurementLog.cs
+│   │   │
+│   │   ├── ViewModels/          # MVVM business logic (9 classes)
+│   │   │   ├── BaseViewModel.cs
+│   │   │   ├── MainViewModel.cs
+│   │   │   ├── DecayChartViewModel.cs
+│   │   │   ├── LibraryViewModel.cs
+│   │   │   ├── GuitarsListViewModel.cs
+│   │   │   ├── GuitarInputViewModel.cs
+│   │   │   ├── StringSetsListViewModel.cs
+│   │   │   ├── StringInputViewModel.cs
+│   │   │   ├── PairingsManagementViewModel.cs
+│   │   │   └── RelayCommand.cs
+│   │   │
+│   │   ├── Views/               # XAML layouts (8 pages)
+│   │   │   ├── MainPage.xaml           # Real-time analyzer interface
+│   │   │   ├── DecayChartPage.xaml     # LiveCharts2 trend visualization
+│   │   │   ├── LibraryPage.xaml        # Navigation hub
+│   │   │   ├── GuitarsListPage.xaml    # Guitar list
+│   │   │   ├── GuitarInputPage.xaml    # Guitar add/edit form
+│   │   │   ├── StringSetsListPage.xaml # String set list
+│   │   │   ├── StringInputPage.xaml    # String set add/edit
+│   │   │   └── PairingsManagementPage.xaml
+│   │   │
+│   │   ├── Converters/          # Value converters (15 classes)
+│   │   │   └── ValueConverters.cs
+│   │   │
 │   │   ├── Services/            # Audio capture, DB access
-│   │   │   ├── Interfaces/      # Service contracts
-│   │   │   ├── Implementations/ # Service implementations
+│   │   │   ├── Interfaces/      # Service contracts (13 interfaces)
+│   │   │   ├── Implementations/ # Service implementations (13 classes)
 │   │   │   └── Spectral/        # Native C# DSP (FftSharp)
 │   │   │       ├── WindowFunctions.cs   # Hamming/Hann/Blackman
 │   │   │       ├── FftProcessor.cs      # FFT computation
 │   │   │       └── SpectralMetrics.cs   # Centroid, HF ratio, decay
-│   │   └── Platforms/           # iOS/Android/Windows specifics
+│   │   │
+│   │   ├── Platforms/           # iOS/Android/Windows/MacCatalyst specifics
+│   │   │   ├── Android/Services/AudioCaptureService.Android.cs
+│   │   │   ├── iOS/Services/AudioCaptureService.iOS.cs
+│   │   │   ├── MacCatalyst/Services/AudioCaptureService.MacCatalyst.cs
+│   │   │   └── Windows/Services/AudioCaptureService.Windows.cs
+│   │   │
+│   │   ├── App.xaml(.cs)
+│   │   ├── AppShell.xaml(.cs)
+│   │   ├── MauiProgram.cs       # DI + service registration
+│   │   └── GlobalXmlns.cs       # Global XAML namespace registration
 │   │
 │   ├── SonicDecay.Engine/       # Python DSP (reference/desktop fallback)
 │   │   ├── analysis.py          # FFT & metric extraction
 │   │   ├── spectral.py          # Metric calculations
+│   │   ├── cli.py               # CLI interface
+│   │   ├── server.py            # Server mode for process pooling
 │   │   ├── requirements.txt     # NumPy, SciPy dependencies
-│   │   └── tests/               # Algorithm validation
+│   │   └── tests/               # Algorithm validation (pytest)
+│   │       ├── test_analysis.py # FFT pipeline tests
+│   │       └── test_spectral.py # Metric calculation tests
 │   │
-│   └── SonicDecay.Data/         # Database layer
-│       ├── Schema.sql           # Table definitions
-│       └── SampleData.db        # Test database
+│   └── SonicDecay.Data/         # Database layer (legacy reference)
 │
 ├── docs/                        # Technical documentation
-└── tests/                       # Integration & unit tests
+└── tests/                       # C# integration & unit tests
 ```
 
 ---
@@ -233,6 +274,48 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 
 ---
 
+## Implemented Services & Components
+
+### Service Layer (13 Interfaces, 13 Implementations)
+
+| Interface | Implementation | Purpose |
+|-----------|----------------|---------|
+| `IDatabaseService` | `DatabaseService` | SQLite connection singleton |
+| `IPermissionService` | `PermissionService` | Microphone access |
+| `IAudioCaptureService` | `AudioCaptureService` | 48kHz PCM capture |
+| `IAnalysisService` | `NativeAnalysisService` | Primary C# FFT analysis |
+| `IAnalysisService` | `AnalysisService` | Python fallback (desktop) |
+| `IMeasurementService` | `MeasurementService` | Analysis + DB coordination |
+| `IRecommendationService` | `RecommendationService` | Decay prediction |
+| `IStringSetRepository` | `StringSetRepository` | StringSet CRUD |
+| `IStringBaselineRepository` | `StringBaselineRepository` | Baseline CRUD |
+| `IMeasurementLogRepository` | `MeasurementLogRepository` | MeasurementLog CRUD |
+| `IGuitarRepository` | `GuitarRepository` | Guitar CRUD |
+| `IGuitarStringSetPairingRepository` | `GuitarStringSetPairingRepository` | Pairing CRUD |
+| `ISeedDataService` | `SeedDataService` | Preset string data |
+
+### Value Converters (15 Classes in ValueConverters.cs)
+
+| Converter | Purpose |
+|-----------|---------|
+| `InvertedBoolConverter` | Boolean inversion |
+| `StringNotEmptyConverter` | String validation |
+| `IntToBoolConverter` | Integer to boolean |
+| `DecayToColorConverter` | Health status colors (green/yellow/red) |
+| `PresetToColorConverter` | Gauge preset button backgrounds |
+| `PresetToTextColorConverter` | Gauge preset button text |
+| `BoolToColorConverter` | Boolean-based styling |
+| `BoolToTextColorConverter` | Boolean-based text styling |
+| `StringNumberIndexConverter` | 1-6 to 0-5 index conversion |
+| `CaptureButtonTextConverter` | Start/Stop button labels |
+| `SaveButtonTextConverter` | Save/Update button labels |
+| `ExpandChevronConverter` | Collapse/expand chevron (▼/▶) |
+| `NullToVisibleConverter` | Null-state visibility |
+| `NotNullToVisibleConverter` | Non-null visibility |
+| `BoolToVisibleConverter` | Boolean visibility |
+
+---
+
 ## Development Phases
 
 ### Phase 1: Database Infrastructure ✓
@@ -277,17 +360,21 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 - Latency optimization in audio pipeline
 - Final architectural review for production readiness
 
-### Phase 6: Guitar Management & Visualization
-**Status**: In Progress
+### Phase 6: Guitar Management & Visualization ✓
+**Status**: Complete
 **Deliverables**:
 - `Guitar` entity with Name, Make, Model, Type, Notes
 - `GuitarStringSetPairing` junction table for instrument-string relationships
 - `IGuitarRepository` and `IGuitarStringSetPairingRepository` interfaces and implementations
 - `GuitarInputPage` for guitar CRUD operations
-- Guitar selection picker in `MainPage` (above Brand/Model)
+- `GuitarsListPage` for guitar list view with navigation
+- `LibraryPage` as navigation hub (Guitars, String Sets, Pairings)
+- `PairingsManagementPage` for dedicated pairing management
+- Guitar selection picker in `MainPage` with collapsible context section
 - LiveCharts2 integration for decay trend visualization
 - `DecayChartPage` with user-selectable metrics (Decay %, Centroid, HF Ratio)
-- Embedded chart preview in `MainPage`
+- `SeedDataService` for preset string data loading (Elixir, D'Addario, etc.)
+- 15 XAML value converters for UI logic binding
 
 ---
 
@@ -452,17 +539,31 @@ When working with this project:
 
 ## Current Development Context
 
-**Active Phase**: Phase 6 (Guitar Management & Visualization)
-**Blockers**: None
-**Next Milestone**: Complete Guitar entity, pairing system, and decay trend visualization
+**Active Phase**: All phases complete. Entering production hardening.
+**Project Status**: Feature-complete (95%)
+**Next Milestone**: C# unit test coverage, production deployment
 
-**Recent Decisions**:
-- Chose 48kHz sample rate for headroom in harmonic analysis
-- Selected RMS threshold over zero-crossing for trigger reliability
-- Ported Python DSP to native C# via FftSharp for mobile platform support
-- Selected FftSharp library (MIT, .NET Standard, ~50KB) for FFT computation
-- Selected LiveCharts2 (SkiaSharp) for cross-platform chart rendering
-- Guitar-StringSet pairing uses junction table with active flag constraint
+**Completed Features**:
+- Real-time spectral analysis with native C# DSP
+- Guitar and string set management with pairing system
+- Decay trend visualization with LiveCharts2
+- Predictive replacement recommendations via linear regression
+- Collapsible context section with summary display
+- Platform-specific audio capture (iOS/Android/Windows/macOS)
+
+**Remaining Work**:
+- C# unit tests for repositories and ViewModels
+- Integration tests for audio → analysis → persistence pipeline
+- Performance profiling and optimization
+- Production deployment preparation
+
+**Architectural Decisions Made**:
+- 48kHz sample rate for headroom in harmonic analysis
+- RMS threshold over zero-crossing for trigger reliability
+- Native C# DSP via FftSharp (MIT, .NET Standard) for cross-platform support
+- Python engine retained as desktop fallback and reference implementation
+- LiveCharts2 (SkiaSharp) for cross-platform chart rendering
+- Guitar-StringSet pairing via junction table with single active constraint
 
 ---
 
