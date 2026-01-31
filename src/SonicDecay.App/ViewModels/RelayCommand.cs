@@ -147,6 +147,7 @@ namespace SonicDecay.App.ViewModels
 
         /// <summary>
         /// Executes the async command.
+        /// Exceptions are caught and logged to prevent unhandled exceptions from async void.
         /// </summary>
         /// <param name="parameter">Command parameter (ignored).</param>
         public async void Execute(object? parameter)
@@ -162,6 +163,11 @@ namespace SonicDecay.App.ViewModels
             try
             {
                 await _execute();
+            }
+            catch (Exception ex)
+            {
+                // Log exception to prevent unhandled exception crash from async void
+                System.Diagnostics.Debug.WriteLine($"[AsyncRelayCommand] Unhandled exception: {ex}");
             }
             finally
             {
@@ -217,6 +223,7 @@ namespace SonicDecay.App.ViewModels
 
         /// <summary>
         /// Executes the async command with the provided parameter.
+        /// Exceptions are caught and logged to prevent unhandled exceptions from async void.
         /// </summary>
         /// <param name="parameter">The command parameter.</param>
         public async void Execute(object? parameter)
@@ -232,6 +239,11 @@ namespace SonicDecay.App.ViewModels
             try
             {
                 await _execute((T?)parameter);
+            }
+            catch (Exception ex)
+            {
+                // Log exception to prevent unhandled exception crash from async void
+                System.Diagnostics.Debug.WriteLine($"[AsyncRelayCommand<T>] Unhandled exception: {ex}");
             }
             finally
             {
