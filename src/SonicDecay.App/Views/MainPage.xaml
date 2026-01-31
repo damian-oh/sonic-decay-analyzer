@@ -53,7 +53,9 @@
                                         ItemsSource="{Binding Guitars}"
                                         SelectedItem="{Binding SelectedGuitar}"
                                         ItemDisplayBinding="{Binding Name}"
-                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"/>
+                                        IsEnabled="{Binding IsCapturing, Converter={StaticResource InvertedBoolConverter}}"
+                                        SemanticProperties.Description="Guitar selection"
+                                        SemanticProperties.Hint="Select the guitar to analyze"/>
 
                                 <Button Grid.Column="1"
                                         Text="+"
@@ -481,7 +483,9 @@
                     Command="{Binding RequestPermissionCommand}"
                     BackgroundColor="{StaticResource Primary}"
                     TextColor="White"
-                    IsVisible="{Binding HasPermission, Converter={StaticResource InvertedBoolConverter}}"/>
+                    IsVisible="{Binding HasPermission, Converter={StaticResource InvertedBoolConverter}}"
+                    SemanticProperties.Description="Grant microphone permission"
+                    SemanticProperties.Hint="Tap to request microphone access for audio capture"/>
 
             <!-- Capture Controls (shown when has permission) -->
             <Button Grid.Column="0"
@@ -489,7 +493,9 @@
                     Command="{Binding StartCaptureCommand}"
                     BackgroundColor="{StaticResource HealthExcellent}"
                     TextColor="White"
-                    IsVisible="{Binding HasPermission}">
+                    IsVisible="{Binding HasPermission}"
+                    SemanticProperties.Description="Start audio capture"
+                    SemanticProperties.Hint="Begin recording audio from microphone for spectral analysis">
                 <Button.Triggers>
                     <DataTrigger TargetType="Button" Binding="{Binding IsCapturing}" Value="True">
                         <Setter Property="IsVisible" Value="False"/>
@@ -502,7 +508,9 @@
                     Command="{Binding StopCaptureCommand}"
                     BackgroundColor="{StaticResource HealthReplace}"
                     TextColor="White"
-                    IsVisible="{Binding IsCapturing}"/>
+                    IsVisible="{Binding IsCapturing}"
+                    SemanticProperties.Description="Stop audio capture"
+                    SemanticProperties.Hint="Stop recording audio"/>
 
             <Button Grid.Column="1"
                     Text="Set Baseline"
@@ -510,7 +518,9 @@
                     BackgroundColor="{StaticResource AnalysisAccent}"
                     TextColor="White"
                     IsVisible="{Binding HasPermission}"
-                    IsEnabled="{Binding IsCapturing}"/>
+                    IsEnabled="{Binding IsCapturing}"
+                    SemanticProperties.Description="Set baseline measurement"
+                    SemanticProperties.Hint="Record the fresh string reference measurement"/>
         </Grid>
 
         <!-- Loading Overlay -->
