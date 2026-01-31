@@ -229,6 +229,18 @@ namespace SonicDecay.App.ViewModels
                 return;
             }
 
+            // Show confirmation dialog
+            var confirmed = await Shell.Current.DisplayAlert(
+                "Delete Pairing",
+                $"Are you sure you want to delete the pairing \"{pairing.DisplayName}\"?",
+                "Delete",
+                "Cancel");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
             IsBusy = true;
             ErrorMessage = string.Empty;
 
