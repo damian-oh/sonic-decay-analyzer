@@ -308,19 +308,10 @@ namespace SonicDecay.App.Converters
 
     /// <summary>
     /// Alias for NotNullConverter for XAML compatibility.
-    /// Converts an object to boolean (true if not null).
+    /// Inherits from NotNullConverter to avoid code duplication.
     /// </summary>
-    public class IsNotNullConverter : IValueConverter
+    public class IsNotNullConverter : NotNullConverter
     {
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            return value != null;
-        }
-
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
     }
 
     /// <summary>
