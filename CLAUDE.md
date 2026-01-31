@@ -400,13 +400,13 @@ All commits must follow the Conventional Commits specification:
 
 ### Commit Types
 
-- **feat**: New feature (e.g., `feat(App): implement microphone permission service`)
-- **fix**: Bug fix (e.g., `fix(Engine): resolve FFT windowing artifact`)
-- **docs**: Documentation only (e.g., `docs(README): update installation instructions`)
-- **style**: Code style/formatting (e.g., `style(Models): apply consistent spacing`)
-- **refactor**: Code restructuring (e.g., `refactor(Data): apply repository pattern`)
-- **test**: Test additions/corrections (e.g., `test(Engine): add centroid calculation tests`)
-- **chore**: Build/tooling changes (e.g., `chore(deps): update sqlite-net-pcl to 1.9.0`)
+- **feat**: New feature (e.g., `feat(App): Implement microphone permission service`)
+- **fix**: Bug fix (e.g., `fix(Engine): Resolve FFT windowing artifact`)
+- **docs**: Documentation only (e.g., `docs(README): Update installation instructions`)
+- **style**: Code style/formatting (e.g., `style(Models): Apply consistent spacing`)
+- **refactor**: Code restructuring (e.g., `refactor(Data): Apply repository pattern`)
+- **test**: Test additions/corrections (e.g., `test(Engine): Add centroid calculation tests`)
+- **chore**: Build/tooling changes (e.g., `chore(deps): Update sqlite-net-pcl to 1.9.0`)
 
 ### Scope Guidelines
 
@@ -422,12 +422,12 @@ Use these scopes to match the project structure:
 ### Examples
 
 ```
-feat(App): implement IAudioCaptureService for cross-platform recording
-fix(Engine): correct spectral centroid calculation for edge frequencies
-refactor(Data): extract StringSet repository from DatabaseService
-test(Engine): add FFT accuracy validation with sine wave inputs
-docs(CLAUDE): update database schema section with actual models
-chore(App): add Python.NET dependency for engine integration
+feat(App): Implement IAudioCaptureService for cross-platform recording
+fix(Engine): Correct spectral centroid calculation for edge frequencies
+refactor(Data): Extract StringSet repository from DatabaseService
+test(Engine): Add FFT accuracy validation with sine wave inputs
+docs(CLAUDE): Update database schema section with actual models
+chore(App): Add Python.NET dependency for engine integration
 ```
 
 ### Commit Body Guidelines (Optional)
@@ -478,6 +478,6 @@ Code should reflect **GTA Industry-ready** standards: production-grade, maintain
 
 ---
 
-*Last Updated: 2026-01-25*  
+*Last Updated: 2026-01-31*  
 *Maintained by: Project Architect*  
 *For AI Assistant Context: This document defines the complete technical contract for the Sonic Decay Analyzer project.*
