@@ -49,7 +49,21 @@ namespace SonicDecay.App.Services.Implementations
         public string PythonPath
         {
             get => _pythonPath;
-            set => _pythonPath = value ?? "python";
+            set
+            {
+                var path = value ?? "python";
+
+                // Security: Validate python path against injection patterns
+                if (ContainsInjectionPatterns(path))
+                {
+                    Debug.WriteLine($"[AnalysisService] Rejected potentially unsafe Python path: {path}");
+                    _pythonPath = "python"; // Fall back to default
+                }
+                else
+                {
+                    _pythonPath = path;
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -148,8 +162,9 @@ namespace SonicDecay.App.Services.Implementations
                 var version = await GetEngineVersionAsync();
                 return !string.IsNullOrEmpty(version);
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[AnalysisService] Engine availability check failed: {ex.Message}");
                 return false;
             }
         }
@@ -163,8 +178,9 @@ namespace SonicDecay.App.Services.Implementations
                 var result = JsonSerializer.Deserialize<VersionResponse>(response, JsonOptions);
                 return result?.Version;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"[AnalysisService] Failed to get engine version: {ex.Message}");
                 return null;
             }
         }
@@ -237,7 +253,10 @@ namespace SonicDecay.App.Services.Implementations
                 {
                     process.Kill(entireProcessTree: true);
                 }
-                catch { }
+                catch (Exception killEx)
+                {
+                    Debug.WriteLine($"[AnalysisService] Failed to kill process: {killEx.Message}");
+                }
                 throw;
             }
 
@@ -311,6 +330,45 @@ namespace SonicDecay.App.Services.Implementations
         {
             public string? Version { get; set; }
             public bool Success { get; set; }
+        }
+
+        /// <summary>
+        /// Checks if a path contains potential command injection patterns.
+        /// </summary>
+        /// <param name="path">The path to validate.</param>
+        /// <returns>True if the path contains suspicious patterns.</returns>
+        private static bool ContainsInjectionPatterns(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return false;
+            }
+
+            // Check for common command injection characters and patterns
+            var dangerousPatterns = new[]
+            {
+                ";",      // Command separator
+                "|",      // Pipe
+                "&",      // Background/and operator
+                "`",      // Backtick execution
+                "$(",     // Command substitution
+                "${",     // Variable expansion
+                "$((",    // Arithmetic expansion
+                "\n",     // Newline
+                "\r",     // Carriage return
+                ">>",     // Append redirect
+                "<<",     // Here document
+            };
+
+            foreach (var pattern in dangerousPatterns)
+            {
+                if (path.Contains(pattern, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
