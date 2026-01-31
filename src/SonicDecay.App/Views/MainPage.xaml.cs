@@ -31,7 +31,8 @@ namespace SonicDecay.App.Views
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            // ViewModel disposal is handled by DI container
+            // Dispose ViewModel to stop capture and unsubscribe from events
+            _viewModel.Dispose();
         }
     }
 }

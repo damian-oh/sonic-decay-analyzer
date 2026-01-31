@@ -869,6 +869,7 @@ namespace SonicDecay.App.ViewModels
         }
 
         private bool _isEstablishingBaseline;
+        private bool _isDisposed;
 
         private async Task NavigateToStringInputAsync()
         {
@@ -1024,9 +1025,16 @@ namespace SonicDecay.App.ViewModels
 
         private void OnBufferCaptured(object? sender, AudioBufferCapturedEventArgs e)
         {
+            // Guard against processing after disposal
+            if (_isDisposed)
+            {
+                return;
+            }
+
             // Update RMS level on UI thread
             MainThread.BeginInvokeOnMainThread(() =>
             {
+                if (_isDisposed) return;
                 RmsLevel = e.Buffer.RmsAmplitude;
             });
 
@@ -1130,8 +1138,11 @@ namespace SonicDecay.App.ViewModels
 
         private void OnCaptureStateChanged(object? sender, AudioCaptureState state)
         {
+            if (_isDisposed) return;
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
+                if (_isDisposed) return;
                 IsCapturing = state == AudioCaptureState.Capturing;
                 StatusMessage = state switch
                 {
@@ -1146,8 +1157,11 @@ namespace SonicDecay.App.ViewModels
 
         private void OnCaptureError(object? sender, AudioCaptureErrorEventArgs e)
         {
+            if (_isDisposed) return;
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
+                if (_isDisposed) return;
                 ErrorMessage = e.Message;
                 StatusMessage = "Capture error occurred";
             });
@@ -1212,9 +1226,24 @@ namespace SonicDecay.App.ViewModels
 
         /// <summary>
         /// Disposes resources used by the ViewModel.
+        /// Stops any active capture and unsubscribes from events.
         /// </summary>
         public void Dispose()
         {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+
+            // Stop capture if active
+            if (IsCapturing)
+            {
+                _ = _audioCaptureService.StopCaptureAsync();
+            }
+
+            // Unsubscribe from events
             _audioCaptureService.BufferCaptured -= OnBufferCaptured;
             _audioCaptureService.StateChanged -= OnCaptureStateChanged;
             _audioCaptureService.ErrorOccurred -= OnCaptureError;
