@@ -33,6 +33,10 @@ namespace SonicDecay.App.Views
         {
             base.OnAppearing();
 
+            // Initialize first to load string sets, then load guitar data if editing
+            // This order ensures AvailableStringSets is populated before LoadForEditAsync accesses it
+            await _viewModel.InitializeAsync();
+
             if (!string.IsNullOrEmpty(GuitarId) && int.TryParse(GuitarId, out int id))
             {
                 await _viewModel.LoadForEditAsync(id);
@@ -41,8 +45,6 @@ namespace SonicDecay.App.Views
             {
                 _viewModel.Reset();
             }
-
-            await _viewModel.InitializeAsync();
         }
     }
 }
