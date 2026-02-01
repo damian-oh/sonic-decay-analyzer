@@ -616,9 +616,11 @@ namespace SonicDecay.App.ViewModels
                 // Check microphone permission (always re-check in case it was revoked)
                 HasPermission = await _permissionService.HasMicrophonePermissionAsync();
 
-                // Load guitars and string sets
-                await LoadGuitarsAsync();
+                // Load string sets first, then guitars
+                // String sets must be loaded before guitars because selecting a guitar
+                // triggers LoadPairingsForGuitarAsync which depends on _allStringSets
                 await LoadStringSetsAsync();
+                await LoadGuitarsAsync();
 
                 StatusMessage = HasPermission
                     ? "Ready - select a guitar and string set to begin"
