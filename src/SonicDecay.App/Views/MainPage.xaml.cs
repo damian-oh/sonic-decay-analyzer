@@ -28,11 +28,12 @@ namespace SonicDecay.App.Views
         }
 
         /// <inheritdoc />
-        protected override void OnDisappearing()
+        protected override async void OnDisappearing()
         {
             base.OnDisappearing();
-            // Dispose ViewModel to stop capture and unsubscribe from events
-            _viewModel.Dispose();
+            // Clean up when page is navigated away from
+            // ViewModel will re-subscribe to events in InitializeAsync on next appearance
+            await _viewModel.CleanupAsync();
         }
     }
 }

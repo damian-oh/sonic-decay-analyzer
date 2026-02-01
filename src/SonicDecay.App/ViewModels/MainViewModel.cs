@@ -600,11 +600,20 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public async Task InitializeAsync()
         {
+            // Re-subscribe to events if previously unsubscribed (page reuse scenario)
+            if (_isDisposed)
+            {
+                _isDisposed = false;
+                _audioCaptureService.BufferCaptured += OnBufferCaptured;
+                _audioCaptureService.StateChanged += OnCaptureStateChanged;
+                _audioCaptureService.ErrorOccurred += OnCaptureError;
+            }
+
             IsBusy = true;
 
             try
             {
-                // Check microphone permission
+                // Check microphone permission (always re-check in case it was revoked)
                 HasPermission = await _permissionService.HasMicrophonePermissionAsync();
 
                 // Load guitars and string sets
@@ -623,6 +632,27 @@ namespace SonicDecay.App.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        /// <summary>
+        /// Cleans up resources when the page is navigated away from.
+        /// Call this from the page's OnDisappearing event.
+        /// </summary>
+        public async Task CleanupAsync()
+        {
+            // Stop capture if active
+            if (IsCapturing)
+            {
+                await StopCaptureAsync();
+            }
+
+            // Mark as disposed to prevent event handling
+            _isDisposed = true;
+
+            // Unsubscribe from events to prevent memory leaks
+            _audioCaptureService.BufferCaptured -= OnBufferCaptured;
+            _audioCaptureService.StateChanged -= OnCaptureStateChanged;
+            _audioCaptureService.ErrorOccurred -= OnCaptureError;
         }
 
         #endregion
@@ -662,13 +692,25 @@ namespace SonicDecay.App.ViewModels
             var success = await _audioCaptureService.StartCaptureAsync();
             if (!success)
             {
-                ErrorMessage = "Failed to start audio capture";
+                // Only set generic error if no specific error was already set by the service
+                if (string.IsNullOrEmpty(ErrorMessage))
+                {
+                    ErrorMessage = "Failed to start audio capture";
+                }
                 StatusMessage = "Capture failed";
             }
         }
 
-        private async Task StopCaptureAsync()
+        /// <summary>
+        /// Stops audio capture. Can be called externally when page is navigated away.
+        /// </summary>
+        public async Task StopCaptureAsync()
         {
+            if (!IsCapturing)
+            {
+                return;
+            }
+
             StatusMessage = "Stopping capture...";
             await _audioCaptureService.StopCaptureAsync();
             StatusMessage = "Capture stopped";

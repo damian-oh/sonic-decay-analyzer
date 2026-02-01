@@ -29,6 +29,12 @@ namespace SonicDecay.App.Services.Implementations
             if (State == AudioCaptureState.Capturing)
                 return true;
 
+            // Clean up any previous failed state
+            if (_isCapturing)
+            {
+                _isCapturing = false;
+            }
+
             State = AudioCaptureState.Initializing;
 
             return await Task.Run(() =>
@@ -60,6 +66,7 @@ namespace SonicDecay.App.Services.Implementations
 
                     if (bufferSize <= 0)
                     {
+                        State = AudioCaptureState.Stopped;
                         OnError("Failed to determine audio buffer size. Audio hardware may not be available.");
                         return false;
                     }
@@ -79,6 +86,7 @@ namespace SonicDecay.App.Services.Implementations
 
                     if (_audioRecord.State != Android.Media.State.Initialized)
                     {
+                        State = AudioCaptureState.Stopped;
                         OnError("Failed to initialize AudioRecord. Check microphone permissions.");
                         _audioRecord?.Release();
                         _audioRecord = null;
@@ -86,7 +94,20 @@ namespace SonicDecay.App.Services.Implementations
                     }
 
                     _isCapturing = true;
-                    _audioRecord.StartRecording();
+
+                    try
+                    {
+                        _audioRecord.StartRecording();
+                    }
+                    catch (Exception ex)
+                    {
+                        _isCapturing = false;
+                        _audioRecord?.Release();
+                        _audioRecord = null;
+                        State = AudioCaptureState.Stopped;
+                        OnError($"Failed to start recording: {ex.Message}", ex);
+                        return false;
+                    }
 
                     _captureThread = new Thread(CaptureLoop)
                     {
@@ -100,6 +121,11 @@ namespace SonicDecay.App.Services.Implementations
                 }
                 catch (Exception ex)
                 {
+                    // Ensure cleanup on any failure
+                    _isCapturing = false;
+                    _audioRecord?.Release();
+                    _audioRecord = null;
+                    State = AudioCaptureState.Stopped;
                     OnError($"Failed to start audio capture: {ex.Message}", ex);
                     return false;
                 }
