@@ -23,5 +23,12 @@ namespace SonicDecay.App.Models
         public double GaugeE6 { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        /// <summary>
+        /// Gets a display-friendly name combining brand, model, and gauge range.
+        /// Format: "Brand Model (GaugeE1-GaugeE6)" e.g., "Elixir Nanoweb (10-46)"
+        /// </summary>
+        [Ignore]
+        public string DisplayName => $"{Brand} {Model} ({GaugeE1:0.##}-{GaugeE6:0.##})";
     }
 }

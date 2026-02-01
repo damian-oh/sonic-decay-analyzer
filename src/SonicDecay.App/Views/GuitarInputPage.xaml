@@ -116,13 +116,7 @@
                     <Picker Title="Select String Set"
                             ItemsSource="{Binding AvailableStringSets}"
                             SelectedItem="{Binding SelectedStringSet}"
-                            ItemDisplayBinding="{Binding Brand}"/>
-
-                    <!-- Show selected string set details -->
-                    <Label Text="{Binding SelectedStringSet.Model, StringFormat='Model: {0}'}"
-                           FontSize="12"
-                           TextColor="{StaticResource Primary}"
-                           IsVisible="{Binding SelectedStringSet, Converter={StaticResource IsNotNullConverter}}"/>
+                            ItemDisplayBinding="{Binding DisplayName}"/>
                 </VerticalStackLayout>
             </Frame>
 
