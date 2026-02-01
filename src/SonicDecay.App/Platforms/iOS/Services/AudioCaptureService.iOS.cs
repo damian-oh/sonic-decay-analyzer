@@ -27,6 +27,12 @@ namespace SonicDecay.App.Services.Implementations
             if (State == AudioCaptureState.Capturing)
                 return true;
 
+            // Clean up any previous failed state
+            if (_isCapturing)
+            {
+                _isCapturing = false;
+            }
+
             State = AudioCaptureState.Initializing;
 
             return await Task.Run(() =>
@@ -44,6 +50,7 @@ namespace SonicDecay.App.Services.Implementations
 
                     if (error != null)
                     {
+                        State = AudioCaptureState.Stopped;
                         OnError($"Failed to set audio session category: {error.LocalizedDescription}");
                         return false;
                     }
@@ -51,6 +58,7 @@ namespace SonicDecay.App.Services.Implementations
                     audioSession.SetActive(true, out error);
                     if (error != null)
                     {
+                        State = AudioCaptureState.Stopped;
                         OnError($"Failed to activate audio session: {error.LocalizedDescription}");
                         return false;
                     }
@@ -84,6 +92,12 @@ namespace SonicDecay.App.Services.Implementations
 
                     if (startError != null)
                     {
+                        // Clean up on failure
+                        try { _inputNode?.RemoveTapOnBus(0); } catch { }
+                        _audioEngine?.Dispose();
+                        _audioEngine = null;
+                        _inputNode = null;
+                        State = AudioCaptureState.Stopped;
                         OnError($"Failed to start audio engine: {startError.LocalizedDescription}");
                         return false;
                     }
@@ -94,6 +108,13 @@ namespace SonicDecay.App.Services.Implementations
                 }
                 catch (Exception ex)
                 {
+                    // Ensure cleanup on any failure
+                    _isCapturing = false;
+                    try { _inputNode?.RemoveTapOnBus(0); } catch { }
+                    _audioEngine?.Dispose();
+                    _audioEngine = null;
+                    _inputNode = null;
+                    State = AudioCaptureState.Stopped;
                     OnError($"Failed to start audio capture: {ex.Message}", ex);
                     return false;
                 }

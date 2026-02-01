@@ -32,6 +32,12 @@ namespace SonicDecay.App.Services.Implementations
             if (State == AudioCaptureState.Capturing)
                 return true;
 
+            // Clean up any previous failed state
+            if (_isCapturing)
+            {
+                _isCapturing = false;
+            }
+
             State = AudioCaptureState.Initializing;
 
             try
@@ -54,6 +60,7 @@ namespace SonicDecay.App.Services.Implementations
 
                 if (result.Status != AudioGraphCreationStatus.Success)
                 {
+                    State = AudioCaptureState.Stopped;
                     OnError($"Failed to create AudioGraph: {result.Status}");
                     return false;
                 }
@@ -67,9 +74,10 @@ namespace SonicDecay.App.Services.Implementations
 
                 if (inputResult.Status != AudioDeviceNodeCreationStatus.Success)
                 {
-                    OnError($"Failed to create audio input node: {inputResult.Status}");
                     _audioGraph.Dispose();
                     _audioGraph = null;
+                    State = AudioCaptureState.Stopped;
+                    OnError($"Failed to create audio input node: {inputResult.Status}");
                     return false;
                 }
 
@@ -90,6 +98,19 @@ namespace SonicDecay.App.Services.Implementations
             }
             catch (Exception ex)
             {
+                // Ensure cleanup on any failure
+                _isCapturing = false;
+                if (_audioGraph != null)
+                {
+                    _audioGraph.QuantumStarted -= OnQuantumStarted;
+                }
+                _inputNode?.Dispose();
+                _outputNode?.Dispose();
+                _audioGraph?.Dispose();
+                _inputNode = null;
+                _outputNode = null;
+                _audioGraph = null;
+                State = AudioCaptureState.Stopped;
                 OnError($"Failed to start audio capture: {ex.Message}", ex);
                 return false;
             }
