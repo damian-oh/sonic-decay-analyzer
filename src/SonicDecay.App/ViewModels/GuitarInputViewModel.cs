@@ -14,6 +14,7 @@ namespace SonicDecay.App.ViewModels
         private readonly IGuitarRepository _guitarRepository;
         private readonly IGuitarStringSetPairingRepository _pairingRepository;
         private readonly IStringSetRepository _stringSetRepository;
+        private readonly INotificationService _notificationService;
         private readonly SemaphoreSlim _initializationLock = new(1, 1);
 
         private string _name = string.Empty;
@@ -21,8 +22,8 @@ namespace SonicDecay.App.ViewModels
         private string? _model;
         private string _type = "Electric";
         private string? _notes;
-        private string _errorMessage = string.Empty;
         private bool _isEditing;
+        private string _nameError = string.Empty;
         private int? _editingGuitarId;
         private StringSet? _selectedStringSet;
 
@@ -37,11 +38,13 @@ namespace SonicDecay.App.ViewModels
         public GuitarInputViewModel(
             IGuitarRepository guitarRepository,
             IGuitarStringSetPairingRepository pairingRepository,
-            IStringSetRepository stringSetRepository)
+            IStringSetRepository stringSetRepository,
+            INotificationService notificationService)
         {
             _guitarRepository = guitarRepository ?? throw new ArgumentNullException(nameof(guitarRepository));
             _pairingRepository = pairingRepository ?? throw new ArgumentNullException(nameof(pairingRepository));
             _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
 
             Title = "Add Guitar";
 
@@ -77,9 +80,19 @@ namespace SonicDecay.App.ViewModels
             {
                 if (SetProperty(ref _name, value))
                 {
+                    NameError = string.IsNullOrWhiteSpace(value) ? "Name is required" : string.Empty;
                     UpdateSaveCommand();
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the inline validation error for the Name field.
+        /// </summary>
+        public string NameError
+        {
+            get => _nameError;
+            private set => SetProperty(ref _nameError, value);
         }
 
         /// <summary>
@@ -125,15 +138,6 @@ namespace SonicDecay.App.ViewModels
         {
             get => _notes;
             set => SetProperty(ref _notes, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the current error message.
-        /// </summary>
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
         }
 
         /// <summary>
@@ -211,7 +215,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load string sets: {ex.Message}";
+                ShowError($"Failed to load string sets: {ex.Message}");
             }
             finally
             {
@@ -254,7 +258,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load guitar: {ex.Message}";
+                ShowError($"Failed to load guitar: {ex.Message}");
             }
             finally
             {
@@ -277,7 +281,7 @@ namespace SonicDecay.App.ViewModels
             Type = "Electric";
             Notes = null;
             SelectedStringSet = null;
-            ErrorMessage = string.Empty;
+            ClearError();
         }
 
         #endregion
@@ -293,29 +297,31 @@ namespace SonicDecay.App.ViewModels
         {
             if (!CanSave())
             {
-                ErrorMessage = "Guitar name is required";
+                ShowError("Guitar name is required");
                 return;
             }
 
             IsBusy = true;
-            ErrorMessage = string.Empty;
+            ClearError();
 
             try
             {
                 if (IsEditing && _editingGuitarId.HasValue)
                 {
                     await UpdateExistingGuitarAsync();
+                    await _notificationService.ShowSuccessAsync("Guitar updated successfully.");
                 }
                 else
                 {
                     await CreateNewGuitarAsync();
+                    await _notificationService.ShowSuccessAsync("Guitar saved successfully.");
                 }
 
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to save: {ex.Message}";
+                ShowError($"Failed to save: {ex.Message}");
             }
             finally
             {
@@ -362,7 +368,7 @@ namespace SonicDecay.App.ViewModels
             var existingGuitar = await _guitarRepository.GetByIdAsync(_editingGuitarId.Value);
             if (existingGuitar == null)
             {
-                ErrorMessage = "Guitar not found";
+                ShowError("Guitar not found");
                 return;
             }
 

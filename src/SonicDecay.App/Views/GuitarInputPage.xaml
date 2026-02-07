@@ -31,7 +31,13 @@
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Name}"
-                               Placeholder="e.g., My Strat, Studio Les Paul"/>
+                               Placeholder="e.g., My Strat, Studio Les Paul"
+                               SemanticProperties.Description="Guitar name"
+                               SemanticProperties.Hint="Enter a name for your guitar"/>
+                        <Label Text="{Binding NameError}"
+                               FontSize="10"
+                               TextColor="{StaticResource HealthReplace}"
+                               IsVisible="{Binding NameError, Converter={StaticResource StringNotEmptyConverter}}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="4">
@@ -39,7 +45,8 @@
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Make}"
-                               Placeholder="e.g., Fender, Gibson, PRS"/>
+                               Placeholder="e.g., Fender, Gibson, PRS"
+                               SemanticProperties.Description="Guitar manufacturer"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="4">
@@ -47,7 +54,8 @@
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Model}"
-                               Placeholder="e.g., Stratocaster, Les Paul Standard"/>
+                               Placeholder="e.g., Stratocaster, Les Paul Standard"
+                               SemanticProperties.Description="Guitar model"/>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Frame>
@@ -116,7 +124,9 @@
                     <Picker Title="Select String Set"
                             ItemsSource="{Binding AvailableStringSets}"
                             SelectedItem="{Binding SelectedStringSet}"
-                            ItemDisplayBinding="{Binding DisplayName}"/>
+                            ItemDisplayBinding="{Binding DisplayName}"
+                            SemanticProperties.Description="String set selection"
+                            SemanticProperties.Hint="Select the string set currently installed"/>
                 </VerticalStackLayout>
             </Frame>
 
@@ -133,7 +143,8 @@
                     <Editor Text="{Binding Notes}"
                             Placeholder="Add any notes about this guitar..."
                             HeightRequest="100"
-                            AutoSize="TextChanges"/>
+                            AutoSize="TextChanges"
+                            SemanticProperties.Description="Guitar notes"/>
                 </VerticalStackLayout>
             </Frame>
 
