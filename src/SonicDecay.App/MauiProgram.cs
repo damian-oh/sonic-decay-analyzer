@@ -52,6 +52,9 @@ namespace SonicDecay.App
             // Register measurement coordination service (analysis + persistence)
             builder.Services.AddTransient<IMeasurementService, MeasurementService>();
 
+            // Register notification service for user feedback
+            builder.Services.AddSingleton<INotificationService, NotificationService>();
+
             // Register predictive maintenance services (Phase 5)
             builder.Services.AddTransient<IRecommendationService, RecommendationService>();
 #if !ANDROID && !IOS && !MACCATALYST
