@@ -163,7 +163,7 @@ namespace SonicDecay.App.Services.Implementations
                 new StringSet
                 {
                     Brand = "D'Addario",
-                    Model = "XL Nickel Medium (11-48)",
+                    Model = "XL Nickel Medium (11-49)",
                     GaugeE1 = 0.011, GaugeB2 = 0.014, GaugeG3 = 0.018,
                     GaugeD4 = 0.028, GaugeA5 = 0.038, GaugeE6 = 0.049
                 },
