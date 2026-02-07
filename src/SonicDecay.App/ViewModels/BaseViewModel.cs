@@ -11,6 +11,7 @@ namespace SonicDecay.App.ViewModels
     {
         private bool _isBusy;
         private string _title = string.Empty;
+        private string _errorMessage = string.Empty;
 
         /// <summary>
         /// Occurs when a property value changes.
@@ -34,6 +35,51 @@ namespace SonicDecay.App.ViewModels
         {
             get => _title;
             set => SetProperty(ref _title, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the current error message.
+        /// Automatically cleared after a timeout via <see cref="ShowError"/>.
+        /// </summary>
+        public virtual string ErrorMessage
+        {
+            get => _errorMessage;
+            set => SetProperty(ref _errorMessage, value);
+        }
+
+        /// <summary>
+        /// Displays an error message that automatically clears after a timeout.
+        /// Uses equality check to avoid clearing a newer error message.
+        /// </summary>
+        /// <param name="message">The error message to display.</param>
+        /// <param name="dismissAfterMs">Milliseconds before auto-dismissal. Default 5000ms.</param>
+        protected void ShowError(string message, int dismissAfterMs = 5000)
+        {
+            ErrorMessage = message;
+
+            _ = AutoClearErrorAsync(message, dismissAfterMs);
+        }
+
+        /// <summary>
+        /// Clears the current error message.
+        /// </summary>
+        protected void ClearError()
+        {
+            ErrorMessage = string.Empty;
+        }
+
+        /// <summary>
+        /// Auto-clears the error message after a delay if it hasn't been replaced.
+        /// </summary>
+        private async Task AutoClearErrorAsync(string originalMessage, int delayMs)
+        {
+            await Task.Delay(delayMs);
+
+            // Only clear if the message hasn't been replaced by a newer one
+            if (ErrorMessage == originalMessage)
+            {
+                ErrorMessage = string.Empty;
+            }
         }
 
         /// <summary>
