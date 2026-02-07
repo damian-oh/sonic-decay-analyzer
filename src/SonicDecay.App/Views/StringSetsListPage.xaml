@@ -19,7 +19,9 @@
                     Command="{Binding AddStringSetCommand}"
                     BackgroundColor="{StaticResource Primary}"
                     TextColor="White"
-                    Padding="16,10"/>
+                    Padding="16,10"
+                    SemanticProperties.Description="Add string set"
+                    SemanticProperties.Hint="Navigate to add a new custom string set"/>
         </Grid>
 
         <ScrollView Grid.Row="1" Margin="0,16,0,0">
@@ -44,7 +46,9 @@
                                 Command="{Binding AddStringSetCommand}"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="White"
-                                HorizontalOptions="Center"/>
+                                HorizontalOptions="Center"
+                                SemanticProperties.Description="Add string set"
+                                SemanticProperties.Hint="Navigate to add a new custom string set"/>
                     </VerticalStackLayout>
                 </Frame>
 
@@ -58,7 +62,7 @@
                                    Margin="0,0,0,8"
                                    CornerRadius="12"
                                    BorderColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8">
                                     <VerticalStackLayout Grid.Column="0" Spacing="2">
                                         <Label Text="{Binding Brand}"
                                                FontSize="16"
@@ -67,7 +71,18 @@
                                                FontSize="14"
                                                TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
                                     </VerticalStackLayout>
-                                    <Label Grid.Column="1" Grid.RowSpan="2"
+                                    <Button Grid.Column="1" Grid.RowSpan="2"
+                                            Text="Delete"
+                                            FontSize="11"
+                                            Padding="8,4"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteStringSetCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="{StaticResource HealthReplace}"
+                                            TextColor="White"
+                                            VerticalOptions="Center"
+                                            SemanticProperties.Description="Delete string set"
+                                            SemanticProperties.Hint="Delete this string set and all associated data"/>
+                                    <Label Grid.Column="2" Grid.RowSpan="2"
                                            Text="›"
                                            FontSize="24"
                                            TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
@@ -90,7 +105,9 @@
                 Command="{Binding GoBackCommand}"
                 Margin="0,16,0,0"
                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                SemanticProperties.Description="Go back"
+                SemanticProperties.Hint="Navigate to the previous page"/>
 
         <Frame Grid.RowSpan="3"
                BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}"

@@ -28,6 +28,7 @@ namespace SonicDecay.App.ViewModels
             GoBackCommand = new AsyncRelayCommand(GoBackAsync);
             AddGuitarCommand = new AsyncRelayCommand(NavigateToAddGuitarAsync);
             SelectGuitarCommand = new AsyncRelayCommand<Guitar>(NavigateToEditGuitarAsync);
+            DeleteGuitarCommand = new AsyncRelayCommand<Guitar>(DeleteGuitarAsync);
         }
 
         /// <summary>
@@ -54,6 +55,11 @@ namespace SonicDecay.App.ViewModels
         /// Command to navigate to edit guitar page for the selected guitar.
         /// </summary>
         public ICommand SelectGuitarCommand { get; }
+
+        /// <summary>
+        /// Command to delete a guitar with cascade warning confirmation.
+        /// </summary>
+        public ICommand DeleteGuitarCommand { get; }
 
         /// <summary>
         /// Gets whether there are no guitars to display.
@@ -101,6 +107,35 @@ namespace SonicDecay.App.ViewModels
             }
 
             await Shell.Current.GoToAsync($"GuitarInputPage?guitarId={guitar.Id}");
+        }
+
+        private async Task DeleteGuitarAsync(Guitar? guitar)
+        {
+            if (guitar == null)
+            {
+                return;
+            }
+
+            var confirmed = await Shell.Current.DisplayAlert(
+                "Delete Guitar",
+                $"Are you sure you want to delete \"{guitar.Name}\"?\n\nThis will also delete all string set pairings, baselines, and measurement history associated with this guitar.",
+                "Delete",
+                "Cancel");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            try
+            {
+                await _guitarRepository.DeleteAsync(guitar.Id);
+                await LoadGuitarsAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Failed to delete guitar: {ex.Message}");
+            }
         }
     }
 }
