@@ -195,9 +195,9 @@ namespace SonicDecay.App.Services.Implementations
 
             // Add HF ratio analysis as additional factor
             var hfRatioDecay = CalculateHfRatioTrend(baseline, measurements);
-            if (hfRatioDecay > 0.3)
+            if (hfRatioDecay < 0.7)
             {
-                recommendation.Factors.Add($"High-frequency energy declining ({hfRatioDecay:F1}x baseline)");
+                recommendation.Factors.Add($"High-frequency energy at {hfRatioDecay:P0} of baseline");
             }
 
             // Set message if not already set
@@ -377,7 +377,7 @@ namespace SonicDecay.App.Services.Implementations
                 return 1.0;
             }
 
-            return baseline.InitialHighRatio / latestHfRatio;
+            return latestHfRatio / baseline.InitialHighRatio;
         }
 
         /// <summary>
