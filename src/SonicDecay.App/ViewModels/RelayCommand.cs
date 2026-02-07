@@ -116,6 +116,7 @@ namespace SonicDecay.App.ViewModels
     {
         private readonly Func<Task> _execute;
         private readonly Func<bool>? _canExecute;
+        private readonly Action<Exception>? _onError;
         private bool _isExecuting;
 
         /// <summary>
@@ -128,10 +129,12 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         /// <param name="execute">The async function to execute.</param>
         /// <param name="canExecute">Optional function to determine if command can execute.</param>
-        public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null)
+        /// <param name="onError">Optional callback invoked when the command throws an exception.</param>
+        public AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute = null, Action<Exception>? onError = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
+            _onError = onError;
         }
 
         /// <summary>
@@ -147,7 +150,7 @@ namespace SonicDecay.App.ViewModels
 
         /// <summary>
         /// Executes the async command.
-        /// Exceptions are caught and logged to prevent unhandled exceptions from async void.
+        /// Exceptions are caught and routed to the onError callback or logged.
         /// </summary>
         /// <param name="parameter">Command parameter (ignored).</param>
         public async void Execute(object? parameter)
@@ -166,8 +169,14 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                // Log exception to prevent unhandled exception crash from async void
-                System.Diagnostics.Debug.WriteLine($"[AsyncRelayCommand] Unhandled exception: {ex}");
+                if (_onError != null)
+                {
+                    _onError(ex);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AsyncRelayCommand] Unhandled exception: {ex}");
+                }
             }
             finally
             {
@@ -193,6 +202,7 @@ namespace SonicDecay.App.ViewModels
     {
         private readonly Func<T?, Task> _execute;
         private readonly Func<T?, bool>? _canExecute;
+        private readonly Action<Exception>? _onError;
         private bool _isExecuting;
 
         /// <summary>
@@ -205,10 +215,12 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         /// <param name="execute">The async function to execute with parameter.</param>
         /// <param name="canExecute">Optional function to determine if command can execute.</param>
-        public AsyncRelayCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
+        /// <param name="onError">Optional callback invoked when the command throws an exception.</param>
+        public AsyncRelayCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null, Action<Exception>? onError = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
+            _onError = onError;
         }
 
         /// <summary>
@@ -223,7 +235,7 @@ namespace SonicDecay.App.ViewModels
 
         /// <summary>
         /// Executes the async command with the provided parameter.
-        /// Exceptions are caught and logged to prevent unhandled exceptions from async void.
+        /// Exceptions are caught and routed to the onError callback or logged.
         /// </summary>
         /// <param name="parameter">The command parameter.</param>
         public async void Execute(object? parameter)
@@ -242,8 +254,14 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                // Log exception to prevent unhandled exception crash from async void
-                System.Diagnostics.Debug.WriteLine($"[AsyncRelayCommand<T>] Unhandled exception: {ex}");
+                if (_onError != null)
+                {
+                    _onError(ex);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AsyncRelayCommand<T>] Unhandled exception: {ex}");
+                }
             }
             finally
             {
