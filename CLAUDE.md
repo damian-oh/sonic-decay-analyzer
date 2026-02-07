@@ -2,8 +2,8 @@
 
 ## Project Identity
 
-**Name:** Sonic Decay Analyzer  
-**Philosophy:** "I focus on the logic behind the art. I build architectures that streamline complexity."  
+**Name:** Sonic Decay Analyzer
+**Philosophy:** "I focus on the logic behind the art. I build architectures that streamline complexity."
 **Mission:** Replace subjective guitar string assessment with objective spectral data analysis to predict optimal replacement cycles.
 
 ---
@@ -36,51 +36,19 @@ SonicDecayAnalyzer/
 ├── src/
 │   ├── SonicDecay.App/          # C# MAUI Frontend
 │   │   ├── Models/              # Data entities (5 models)
-│   │   │   ├── Guitar.cs
-│   │   │   ├── GuitarStringSetPairing.cs
-│   │   │   ├── StringSet.cs
-│   │   │   ├── StringBaseline.cs
-│   │   │   └── MeasurementLog.cs
-│   │   │
-│   │   ├── ViewModels/          # MVVM business logic (9 classes)
-│   │   │   ├── BaseViewModel.cs
-│   │   │   ├── MainViewModel.cs
-│   │   │   ├── DecayChartViewModel.cs
-│   │   │   ├── LibraryViewModel.cs
-│   │   │   ├── GuitarsListViewModel.cs
-│   │   │   ├── GuitarInputViewModel.cs
-│   │   │   ├── StringSetsListViewModel.cs
-│   │   │   ├── StringInputViewModel.cs
-│   │   │   ├── PairingsManagementViewModel.cs
-│   │   │   └── RelayCommand.cs
-│   │   │
+│   │   ├── ViewModels/          # MVVM business logic (9 ViewModels + RelayCommand)
 │   │   ├── Views/               # XAML layouts (8 pages)
-│   │   │   ├── MainPage.xaml           # Real-time analyzer interface
-│   │   │   ├── DecayChartPage.xaml     # LiveCharts2 trend visualization
-│   │   │   ├── LibraryPage.xaml        # Navigation hub
-│   │   │   ├── GuitarsListPage.xaml    # Guitar list
-│   │   │   ├── GuitarInputPage.xaml    # Guitar add/edit form
-│   │   │   ├── StringSetsListPage.xaml # String set list
-│   │   │   ├── StringInputPage.xaml    # String set add/edit
-│   │   │   └── PairingsManagementPage.xaml
-│   │   │
-│   │   ├── Converters/          # Value converters (15 classes)
+│   │   ├── Converters/          # Value converters (14 classes)
 │   │   │   └── ValueConverters.cs
-│   │   │
-│   │   ├── Services/            # Audio capture, DB access
-│   │   │   ├── Interfaces/      # Service contracts (13 interfaces)
-│   │   │   ├── Implementations/ # Service implementations (13 classes)
+│   │   ├── Services/
+│   │   │   ├── Interfaces/      # Service contracts (14 interfaces)
+│   │   │   ├── Implementations/ # Service implementations (15 classes)
 │   │   │   └── Spectral/        # Native C# DSP (FftSharp)
-│   │   │       ├── WindowFunctions.cs   # Hamming/Hann/Blackman
-│   │   │       ├── FftProcessor.cs      # FFT computation
-│   │   │       └── SpectralMetrics.cs   # Centroid, HF ratio, decay
-│   │   │
-│   │   ├── Platforms/           # iOS/Android/Windows/MacCatalyst specifics
-│   │   │   ├── Android/Services/AudioCaptureService.Android.cs
-│   │   │   ├── iOS/Services/AudioCaptureService.iOS.cs
-│   │   │   ├── MacCatalyst/Services/AudioCaptureService.MacCatalyst.cs
-│   │   │   └── Windows/Services/AudioCaptureService.Windows.cs
-│   │   │
+│   │   │       ├── WindowFunctions.cs
+│   │   │       ├── FftProcessor.cs
+│   │   │       └── SpectralMetrics.cs
+│   │   ├── Platforms/           # iOS/Android/Windows/MacCatalyst audio capture
+│   │   ├── Resources/Styles/    # Colors.xaml, Styles.xaml
 │   │   ├── App.xaml(.cs)
 │   │   ├── AppShell.xaml(.cs)
 │   │   ├── MauiProgram.cs       # DI + service registration
@@ -93,160 +61,49 @@ SonicDecayAnalyzer/
 │   │   ├── server.py            # Server mode for process pooling
 │   │   ├── requirements.txt     # NumPy, SciPy dependencies
 │   │   └── tests/               # Algorithm validation (pytest)
-│   │       ├── test_analysis.py # FFT pipeline tests
-│   │       └── test_spectral.py # Metric calculation tests
 │   │
-│   └── SonicDecay.Data/         # Database layer (legacy reference)
+│   └── SonicDecay.Data/         # SQL reference scripts
+│       ├── Schema.sql
+│       └── SeedData.sql
 │
-├── docs/                        # Technical documentation
-└── tests/                       # C# integration & unit tests
+└── tests/
+    └── SonicDecay.App.Tests/    # xUnit + Moq + FluentAssertions
+        └── Services/Spectral/   # WindowFunctions, FftProcessor, SpectralMetrics tests
 ```
 
 ---
 
-## Database Schema (3-Tier Relational Model)
+## Database Schema
 
-### Entities
+SQLite via sqlite-net-pcl with 5 tables in a 3-tier relational model. Foreign keys and cascading deletes are managed explicitly in the Repository layer (no ORM extensions).
 
-**StringSet** (Metadata)
-```csharp
-[Table("StringSets")]
-public class StringSet
-{
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-    
-    [NotNull]
-    public string Brand { get; set; }          // e.g., "Elixir", "D'Addario"
-    
-    [NotNull]
-    public string Model { get; set; }          // e.g., "Nanoweb", "EXL110"
-    
-    // Individual gauge storage for all 6 strings
-    public double GaugeE1 { get; set; }        // High E (thinnest)
-    public double GaugeB2 { get; set; }        // B
-    public double GaugeG3 { get; set; }        // G
-    public double GaugeD4 { get; set; }        // D
-    public double GaugeA5 { get; set; }        // A
-    public double GaugeE6 { get; set; }        // Low E (thickest)
-    
-    public DateTime CreatedAt { get; set; }
-}
-```
+### Tables
 
-**StringBaseline** (Reference Indicators per String)
-```csharp
-[Table("StringBaselines")]
-public class StringBaseline
-{
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-    
-    [Indexed]
-    public int SetId { get; set; }             // FK → StringSet.Id
-    
-    public int StringNumber { get; set; }      // 1-6 (1=High E, 6=Low E)
-    
-    public double FundamentalFreq { get; set; } // e.g., 82.41 Hz for Low E
-    
-    // Fresh String Spectral Fingerprint
-    public double InitialCentroid { get; set; }    // Hz
-    public double InitialHighRatio { get; set; }   // Decimal ratio
-    
-    public DateTime CreatedAt { get; set; }
-}
-```
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| **Guitars** | Instrument registry | Name, Make, Model, Type (Electric/Acoustic/Classical/Bass), Notes |
+| **StringSets** | String metadata | Brand, Model, individual gauges (GaugeE1-E6) |
+| **GuitarStringSetPairings** | Junction: which strings are on which guitar | GuitarId (FK), SetId (FK), InstalledAt, RemovedAt, IsActive |
+| **StringBaselines** | Fresh-string spectral fingerprint per string | SetId (FK), StringNumber (1-6), FundamentalFreq, InitialCentroid, InitialHighRatio |
+| **MeasurementLogs** | Time-series decay data | BaselineId (FK), CurrentCentroid, CurrentHighRatio, DecayPercentage, PlayTimeHours, Note |
 
-**MeasurementLog** (Time-Series Decay Data)
-```csharp
-[Table("MeasurementLogs")]
-public class MeasurementLog
-{
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-
-    [Indexed]
-    public int BaselineId { get; set; }        // FK → StringBaseline.Id
-
-    // Current Spectral Measurements
-    public double CurrentCentroid { get; set; }    // Hz
-    public double CurrentHighRatio { get; set; }   // Decimal ratio
-
-    // Derived Analytics
-    public double DecayPercentage { get; set; }    // Calculated degradation
-    public double PlayTimeHours { get; set; }      // User-reported play time
-
-    public string? Note { get; set; }              // Optional user annotation
-    public DateTime MeasuredAt { get; set; }
-}
-```
-
-**Guitar** (Instrument Registry)
-```csharp
-[Table("Guitars")]
-public class Guitar
-{
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-
-    [NotNull]
-    public string Name { get; set; }           // User-defined name (e.g., "My Strat")
-    public string? Make { get; set; }          // e.g., "Fender"
-    public string? Model { get; set; }         // e.g., "Stratocaster"
-    [NotNull]
-    public string Type { get; set; }           // "Electric", "Acoustic", "Classical", "Bass"
-    public string? Notes { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-```
-
-**GuitarStringSetPairing** (Junction Table)
-```csharp
-[Table("GuitarStringSetPairings")]
-public class GuitarStringSetPairing
-{
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-
-    [Indexed]
-    public int GuitarId { get; set; }          // FK → Guitar.Id
-    [Indexed]
-    public int SetId { get; set; }             // FK → StringSet.Id
-
-    public DateTime InstalledAt { get; set; }  // When strings were installed
-    public DateTime? RemovedAt { get; set; }   // Null = currently active
-    public bool IsActive { get; set; }         // Only one active per guitar
-    public string? Notes { get; set; }
-}
-```
-
-### Relational Structure
+### Relationships
 
 ```
 Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
-                            │
-                            └──── StringBaseline (6) ────< MeasurementLog (*)
+                                                        │
+                                          StringBaseline (6) ────< MeasurementLog (*)
 ```
 
-**Cardinality Rules**:
-- 1 Guitar → N GuitarStringSetPairings (string installation history)
-- 1 StringSet → N GuitarStringSetPairings (can be used on multiple guitars)
-- 1 GuitarStringSetPairing → 1 active per guitar (constraint enforced in repository)
-- 1 StringSet → 6 StringBaselines (one per string)
-- 1 StringBaseline → N MeasurementLogs (time-series)
+### Key Constraints
 
-### Constraints & Implementation Notes
-
-- **Foreign Key Management**: Explicit handling in Repository layer (no cascading in SQLite attributes)
-- **No ORM Magic**: Avoid high-level abstractions like SQLiteNetExtensions
-- **Cascaded Deletes**: Implemented manually in Repository logic:
-  - Deleting a `Guitar` must delete all related `GuitarStringSetPairings`
-  - Deleting a `StringSet` must delete all related `StringBaselines` and `GuitarStringSetPairings`
-  - Deleting a `StringBaseline` must delete all related `MeasurementLogs`
-- **Active Pairing Constraint**: Only one `GuitarStringSetPairing` per guitar can have `IsActive = true`
-- **Thread Safety**: All DB operations must be async and synchronized via `IDatabaseService`
-- **Indexing**: Foreign keys (`SetId`, `BaselineId`, `GuitarId`) are indexed for query performance
-- **Gauge Storage**: Individual properties (GaugeE1-E6) chosen over array serialization for schema transparency
+- **One active pairing per guitar**: Only one `GuitarStringSetPairing` per guitar can have `IsActive = true`
+- **Cascading deletes** (manual in Repository layer):
+  - Guitar delete → cascades to its Pairings
+  - StringSet delete → cascades to its Baselines and Pairings
+  - StringBaseline delete → cascades to its MeasurementLogs
+- **Indexed FKs**: SetId, BaselineId, GuitarId are indexed for query performance
+- **Thread safety**: All DB operations are async via `IDatabaseService`
 
 ---
 
@@ -276,7 +133,7 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 
 ## Implemented Services & Components
 
-### Service Layer (13 Interfaces, 13 Implementations)
+### Service Layer (14 Interfaces, 15 Implementations)
 
 | Interface | Implementation | Purpose |
 |-----------|----------------|---------|
@@ -287,6 +144,8 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 | `IAnalysisService` | `AnalysisService` | Python fallback (desktop) |
 | `IMeasurementService` | `MeasurementService` | Analysis + DB coordination |
 | `IRecommendationService` | `RecommendationService` | Decay prediction |
+| `INotificationService` | `NotificationService` | Success alerts via DisplayAlert |
+| `IPythonEnginePool` | `PythonEnginePool` | Python subprocess pooling |
 | `IStringSetRepository` | `StringSetRepository` | StringSet CRUD |
 | `IStringBaselineRepository` | `StringBaselineRepository` | Baseline CRUD |
 | `IMeasurementLogRepository` | `MeasurementLogRepository` | MeasurementLog CRUD |
@@ -294,87 +153,32 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 | `IGuitarStringSetPairingRepository` | `GuitarStringSetPairingRepository` | Pairing CRUD |
 | `ISeedDataService` | `SeedDataService` | Preset string data |
 
-### Value Converters (15 Classes in ValueConverters.cs)
+### Value Converters (14 Classes in ValueConverters.cs)
 
 | Converter | Purpose |
 |-----------|---------|
 | `InvertedBoolConverter` | Boolean inversion |
 | `StringNotEmptyConverter` | String validation |
 | `IntToBoolConverter` | Integer to boolean |
+| `StringNumberIndexConverter` | 1-6 to 0-5 index conversion |
+| `CaptureButtonTextConverter` | Start/Stop button labels |
 | `DecayToColorConverter` | Health status colors (green/yellow/red) |
+| `SaveButtonTextConverter` | Save/Update button labels |
+| `NotNullConverter` | Null-state visibility |
 | `PresetToColorConverter` | Gauge preset button backgrounds |
 | `PresetToTextColorConverter` | Gauge preset button text |
 | `BoolToColorConverter` | Boolean-based styling |
 | `BoolToTextColorConverter` | Boolean-based text styling |
-| `StringNumberIndexConverter` | 1-6 to 0-5 index conversion |
-| `CaptureButtonTextConverter` | Start/Stop button labels |
-| `SaveButtonTextConverter` | Save/Update button labels |
-| `ExpandChevronConverter` | Collapse/expand chevron (▼/▶) |
-| `NullToVisibleConverter` | Null-state visibility |
-| `NotNullToVisibleConverter` | Non-null visibility |
-| `BoolToVisibleConverter` | Boolean visibility |
+| `IsNotNullConverter` | Non-null visibility (extends NotNullConverter) |
+| `ExpandChevronConverter` | Collapse/expand chevron |
 
----
+### UI Patterns
 
-## Development Phases
-
-### Phase 1: Database Infrastructure ✓
-**Status**: Foundation layer  
-**Deliverables**:
-- `IDatabaseService` as thread-safe Singleton
-- Repositories for all three entities with explicit FK management
-- `Schema.sql` validation script
-- Unit tests for CRUD operations
-
-### Phase 2: Audio Capture Service ✓
-**Status**: Completed  
-**Deliverables**:
-- `IPermissionService` for async microphone access
-- `IAudioCaptureService` capturing PCM at 48kHz/24-bit
-- RMS threshold trigger for automatic analysis start
-- Platform-specific implementations (iOS/Android/Windows)
-
-### Phase 3: Spectral Analysis Engine ✓
-**Status**: Completed (ported to native C#)
-**Deliverables**:
-- FFT implementation with windowing (Hamming/Hann/Blackman) via FftSharp
-- Spectral Centroid calculation: `Σ(f[i] × magnitude[i]) / Σ(magnitude[i])`
-- HF Energy Ratio: `Σ(magnitude[5kHz:15kHz]) / magnitude[f₀]`
-- Native `NativeAnalysisService` for cross-platform support (iOS/Android/Windows/macOS)
-- Python engine retained as reference implementation and desktop fallback
-- Automated metric persistence to `MeasurementLog`
-
-### Phase 4: MVVM Presentation Layer ✓
-**Status**: Completed  
-**Deliverables**:
-- `MainViewModel` with real-time analysis binding
-- `StringInputView` with brand/model selection + custom gauges
-- Data visualization (decay curve charts)
-- Health percentage display with color-coded indicators
-
-### Phase 5: Predictive Maintenance Algorithm ✓
-**Status**: Completed
-**Deliverables**:
-- Decay rate calculation: `(Baseline - Current) / Baseline × 100`
-- Replacement recommendation engine
-- Latency optimization in audio pipeline
-- Final architectural review for production readiness
-
-### Phase 6: Guitar Management & Visualization ✓
-**Status**: Complete
-**Deliverables**:
-- `Guitar` entity with Name, Make, Model, Type, Notes
-- `GuitarStringSetPairing` junction table for instrument-string relationships
-- `IGuitarRepository` and `IGuitarStringSetPairingRepository` interfaces and implementations
-- `GuitarInputPage` for guitar CRUD operations
-- `GuitarsListPage` for guitar list view with navigation
-- `LibraryPage` as navigation hub (Guitars, String Sets, Pairings)
-- `PairingsManagementPage` for dedicated pairing management
-- Guitar selection picker in `MainPage` with collapsible context section
-- LiveCharts2 integration for decay trend visualization
-- `DecayChartPage` with user-selectable metrics (Decay %, Centroid, HF Ratio)
-- `SeedDataService` for preset string data loading (Elixir, D'Addario, etc.)
-- 15 XAML value converters for UI logic binding
+- `BaseViewModel` has `ShowError(msg, timeout)` with auto-clear and `ClearError()`
+- `AsyncRelayCommand` supports `Action<Exception>? onError` callback
+- Color resources centralized in `Colors.xaml` (chart, health, urgency, baseline themes)
+- `CardFrame` and `EmptyStateFrame` reusable styles in `Styles.xaml`
+- Health status uses unicode symbols for color-blind accessibility
 
 ---
 
@@ -421,26 +225,31 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 
 ---
 
-## Testing Requirements
+## Testing
 
-### Unit Tests (C#)
+### Existing Tests
+
+**C# (xUnit + Moq + FluentAssertions)** in `tests/SonicDecay.App.Tests/`:
+- `WindowFunctionsTests` - Window function validation
+- `FftProcessorTests` - FFT computation tests
+- `SpectralMetricsTests` - Centroid, HF ratio, decay metric tests
+
+**Python (pytest)** in `src/SonicDecay.Engine/tests/`:
+- `test_analysis.py` - FFT pipeline tests
+- `test_spectral.py` - Metric calculation tests
+
+### Remaining Test Coverage
+
 - Repository CRUD operations
 - ViewModel state transitions
 - Service layer isolation tests
-- Spectral analysis classes (`WindowFunctions`, `FftProcessor`, `SpectralMetrics`)
-- `NativeAnalysisService` end-to-end pipeline
-
-### Integration Tests
 - End-to-end audio capture → analysis → persistence
 - Cross-platform permission handling
-- Database schema migrations
 
-### Algorithm Validation
-- FFT accuracy with known sine waves (compare C# vs Python)
-- Centroid calculation cross-validation (tolerance: ±1 Hz)
-- HF Energy Ratio cross-validation (tolerance: ±0.001)
-- Decay Percentage cross-validation (tolerance: ±0.1%)
-- Edge cases: silence, clipping, noise
+### Algorithm Validation Tolerances
+- Centroid: ±1 Hz
+- HF Energy Ratio: ±0.001
+- Decay Percentage: ±0.1%
 
 ---
 
@@ -455,14 +264,14 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 
 ## Forbidden Patterns
 
-❌ **Do NOT**:
+**Do NOT**:
 - Use EF Core or high-level ORMs (violates architectural transparency)
 - Mix business logic in Views or Code-behind
 - Implement pitch detection (this is timbre analysis only)
 - Use synchronous file I/O in UI thread
 - Hard-code string gauges (must be user-configurable)
 
-✅ **Do**:
+**Do**:
 - Maintain strict MVVM separation
 - Use async/await for all I/O operations
 - Implement proper IDisposable for audio resources
@@ -473,51 +282,30 @@ Guitar (1) ────< GuitarStringSetPairing (*) >──── StringSet (1)
 
 ## Git Commit Standards
 
-### Commit Message Format
+### Format
 
-All commits must follow the Conventional Commits specification:
+Conventional Commits: `<type>(<scope>): <description>`
 
-```
-<type>(<scope>): <description>
+### Types
 
-[optional body]
+- **feat**: New feature
+- **fix**: Bug fix
+- **docs**: Documentation only
+- **style**: Code style/formatting
+- **refactor**: Code restructuring
+- **test**: Test additions/corrections
+- **chore**: Build/tooling changes
 
-[optional footer]
-```
-
-### Commit Types
-
-- **feat**: New feature (e.g., `feat(App): Implement microphone permission service`)
-- **fix**: Bug fix (e.g., `fix(Engine): Resolve FFT windowing artifact`)
-- **docs**: Documentation only (e.g., `docs(README): Update installation instructions`)
-- **style**: Code style/formatting (e.g., `style(Models): Apply consistent spacing`)
-- **refactor**: Code restructuring (e.g., `refactor(Data): Apply repository pattern`)
-- **test**: Test additions/corrections (e.g., `test(Engine): Add centroid calculation tests`)
-- **chore**: Build/tooling changes (e.g., `chore(deps): Update sqlite-net-pcl to 1.9.0`)
-
-### Scope Guidelines
-
-Use these scopes to match the project structure:
+### Scopes
 
 - **App**: Changes in `SonicDecay.App/` (ViewModels, Views, Services)
 - **Engine**: Changes in `SonicDecay.Engine/` (Python analysis logic)
-- **Data**: Changes in `SonicDecay.Data/` (Schema, repositories)
+- **Data**: Changes in `SonicDecay.Data/` (Schema, seed data)
 - **Models**: Changes to entity definitions
 - **Platforms**: Platform-specific code (iOS/Android/Windows)
 - **Docs**: Documentation files
 
-### Examples
-
-```
-feat(App): Implement IAudioCaptureService for cross-platform recording
-fix(Engine): Correct spectral centroid calculation for edge frequencies
-refactor(Data): Extract StringSet repository from DatabaseService
-test(Engine): Add FFT accuracy validation with sine wave inputs
-docs(CLAUDE): Update database schema section with actual models
-chore(App): Add Python.NET dependency for engine integration
-```
-
-### Commit Body Guidelines (Optional)
+### Body Guidelines
 
 - Explain **why** the change was made, not **what** (the diff shows what)
 - Reference architectural decisions from CLAUDE.md when relevant
@@ -530,18 +318,16 @@ chore(App): Add Python.NET dependency for engine integration
 When working with this project:
 
 1. **Use precise terminology**: "Spectral Centroid" not "average frequency"
-2. **Reference phase numbers**: "This belongs in Phase 3 deliverables"
-3. **Cite constraints**: "Per the repository pattern requirement..."
-4. **Question assumptions**: If something seems to violate SOLID, ask
-5. **Provide rationale**: Explain architectural decisions with reference to project philosophy
+2. **Cite constraints**: "Per the repository pattern requirement..."
+3. **Question assumptions**: If something seems to violate SOLID, ask
+4. **Provide rationale**: Explain architectural decisions with reference to project philosophy
 
 ---
 
 ## Current Development Context
 
-**Active Phase**: All phases complete. Entering production hardening.
-**Project Status**: Feature-complete (95%)
-**Next Milestone**: C# unit test coverage, production deployment
+**Project Status**: Feature-complete. Production hardening phase.
+**Build**: `dotnet build src/SonicDecay.App/SonicDecay.App.csproj`
 
 **Completed Features**:
 - Real-time spectral analysis with native C# DSP
@@ -550,9 +336,10 @@ When working with this project:
 - Predictive replacement recommendations via linear regression
 - Collapsible context section with summary display
 - Platform-specific audio capture (iOS/Android/Windows/macOS)
+- UI/UX polish: error handling, onboarding, notifications, delete confirmations, card styles
 
 **Remaining Work**:
-- C# unit tests for repositories and ViewModels
+- Expand C# unit tests (repositories, ViewModels, service layer)
 - Integration tests for audio → analysis → persistence pipeline
 - Performance profiling and optimization
 - Production deployment preparation
@@ -579,6 +366,6 @@ Code should reflect **GTA Industry-ready** standards: production-grade, maintain
 
 ---
 
-*Last Updated: 2026-01-31*  
-*Maintained by: Project Architect*  
+*Last Updated: 2026-02-06*
+*Maintained by: Project Architect*
 *For AI Assistant Context: This document defines the complete technical contract for the Sonic Decay Analyzer project.*
