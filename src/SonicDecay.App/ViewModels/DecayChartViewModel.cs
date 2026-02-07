@@ -18,8 +18,10 @@ namespace SonicDecay.App.ViewModels
     {
         private readonly IMeasurementLogRepository _measurementLogRepository;
         private readonly IStringBaselineRepository _baselineRepository;
+        private readonly IStringSetRepository _stringSetRepository;
 
         private int? _baselineId;
+        private string _chartSubtitle = string.Empty;
         private bool _showDecayPercentage = true;
         private bool _showSpectralCentroid;
         private bool _showHfRatio;
@@ -35,10 +37,12 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public DecayChartViewModel(
             IMeasurementLogRepository measurementLogRepository,
-            IStringBaselineRepository baselineRepository)
+            IStringBaselineRepository baselineRepository,
+            IStringSetRepository stringSetRepository)
         {
             _measurementLogRepository = measurementLogRepository ?? throw new ArgumentNullException(nameof(measurementLogRepository));
             _baselineRepository = baselineRepository ?? throw new ArgumentNullException(nameof(baselineRepository));
+            _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
 
             Title = "Decay Trend";
 
@@ -54,6 +58,15 @@ namespace SonicDecay.App.ViewModels
         }
 
         #region Properties
+
+        /// <summary>
+        /// Gets the context subtitle showing which guitar string / set is being charted.
+        /// </summary>
+        public string ChartSubtitle
+        {
+            get => _chartSubtitle;
+            private set => SetProperty(ref _chartSubtitle, value);
+        }
 
         /// <summary>
         /// Gets or sets whether to show decay percentage on the chart.
@@ -194,12 +207,40 @@ namespace SonicDecay.App.ViewModels
         public async Task InitializeAsync(int baselineId)
         {
             _baselineId = baselineId;
+            await LoadContextSubtitleAsync(baselineId);
             await LoadDataAsync();
         }
 
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// Maps string number (1-6) to note name.
+        /// </summary>
+        private static readonly string[] StringNoteNames = { "E1", "B2", "G3", "D4", "A5", "E6" };
+
+        private async Task LoadContextSubtitleAsync(int baselineId)
+        {
+            try
+            {
+                var baseline = await _baselineRepository.GetByIdAsync(baselineId);
+                if (baseline == null) return;
+
+                var stringSet = await _stringSetRepository.GetByIdAsync(baseline.SetId);
+                if (stringSet == null) return;
+
+                var noteName = baseline.StringNumber >= 1 && baseline.StringNumber <= 6
+                    ? StringNoteNames[baseline.StringNumber - 1]
+                    : $"#{baseline.StringNumber}";
+
+                ChartSubtitle = $"{stringSet.Brand} {stringSet.Model} - String {baseline.StringNumber} ({noteName})";
+            }
+            catch
+            {
+                // Non-critical, leave subtitle empty
+            }
+        }
 
         private void InitializeChartSeries()
         {
@@ -277,7 +318,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load chart data: {ex.Message}");
+                ShowError($"Failed to load chart data: {ex.Message}");
                 HasData = false;
                 OnPropertyChanged(nameof(HasNoData));
             }

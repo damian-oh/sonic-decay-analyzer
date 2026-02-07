@@ -7,20 +7,31 @@
              x:DataType="vm:DecayChartViewModel"
              Title="{Binding Title}">
 
-    <Grid RowDefinitions="*,Auto,Auto" Padding="16">
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="16">
+
+        <!-- Chart Context Header -->
+        <Label Grid.Row="0"
+               Text="{Binding ChartSubtitle}"
+               FontSize="14"
+               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+               HorizontalOptions="Center"
+               Margin="0,0,0,8"
+               IsVisible="{Binding ChartSubtitle, Converter={StaticResource StringNotEmptyConverter}}"/>
 
         <!-- Chart -->
-        <lvc:CartesianChart Grid.Row="0"
+        <lvc:CartesianChart Grid.Row="1"
                             Series="{Binding Series}"
                             XAxes="{Binding XAxes}"
                             YAxes="{Binding YAxes}"
                             ZoomMode="X"
                             TooltipPosition="Top"
-                            IsVisible="{Binding HasData}">
+                            IsVisible="{Binding HasData}"
+                            SemanticProperties.Description="Decay trend chart"
+                            SemanticProperties.Hint="Shows spectral decay measurements over time">
         </lvc:CartesianChart>
 
         <!-- No Data Message -->
-        <Frame Grid.Row="0"
+        <Frame Grid.Row="1"
                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
                Padding="32"
                CornerRadius="16"
@@ -48,7 +59,7 @@
         </Frame>
 
         <!-- Metric Toggle Buttons -->
-        <Frame Grid.Row="1"
+        <Frame Grid.Row="2"
                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                Padding="12"
                CornerRadius="12"
@@ -67,7 +78,9 @@
                             FontSize="12"
                             Command="{Binding ToggleDecayCommand}"
                             BackgroundColor="{Binding ShowDecayPercentage, Converter={StaticResource BoolToColorConverter}}"
-                            TextColor="{Binding ShowDecayPercentage, Converter={StaticResource BoolToTextColorConverter}}"/>
+                            TextColor="{Binding ShowDecayPercentage, Converter={StaticResource BoolToTextColorConverter}}"
+                            SemanticProperties.Description="Toggle decay percentage series"
+                            SemanticProperties.Hint="Show or hide the decay percentage line on the chart"/>
 
                     <Button Text="Centroid"
                             Margin="4"
@@ -75,7 +88,9 @@
                             FontSize="12"
                             Command="{Binding ToggleCentroidCommand}"
                             BackgroundColor="{Binding ShowSpectralCentroid, Converter={StaticResource BoolToColorConverter}}"
-                            TextColor="{Binding ShowSpectralCentroid, Converter={StaticResource BoolToTextColorConverter}}"/>
+                            TextColor="{Binding ShowSpectralCentroid, Converter={StaticResource BoolToTextColorConverter}}"
+                            SemanticProperties.Description="Toggle spectral centroid series"
+                            SemanticProperties.Hint="Show or hide the spectral centroid line on the chart"/>
 
                     <Button Text="HF Ratio"
                             Margin="4"
@@ -83,38 +98,40 @@
                             FontSize="12"
                             Command="{Binding ToggleHfRatioCommand}"
                             BackgroundColor="{Binding ShowHfRatio, Converter={StaticResource BoolToColorConverter}}"
-                            TextColor="{Binding ShowHfRatio, Converter={StaticResource BoolToTextColorConverter}}"/>
+                            TextColor="{Binding ShowHfRatio, Converter={StaticResource BoolToTextColorConverter}}"
+                            SemanticProperties.Description="Toggle high-frequency ratio series"
+                            SemanticProperties.Hint="Show or hide the HF energy ratio line on the chart"/>
                 </FlexLayout>
 
                 <!-- Legend -->
                 <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,*" ColumnSpacing="8">
                     <BoxView Grid.Column="0"
-                             Color="#FF4500"
+                             Color="{StaticResource ChartDecay}"
                              WidthRequest="16"
                              HeightRequest="3"
                              VerticalOptions="Center"/>
                     <Label Grid.Column="1"
-                           Text="Decay"
+                           Text="Decay %"
                            FontSize="10"
                            VerticalOptions="Center"/>
 
                     <BoxView Grid.Column="2"
-                             Color="#1E90FF"
+                             Color="{StaticResource ChartCentroid}"
                              WidthRequest="16"
                              HeightRequest="3"
                              VerticalOptions="Center"/>
                     <Label Grid.Column="3"
-                           Text="Centroid"
+                           Text="Centroid (Hz/10)"
                            FontSize="10"
                            VerticalOptions="Center"/>
 
                     <BoxView Grid.Column="4"
-                             Color="#9370DB"
+                             Color="{StaticResource ChartHfRatio}"
                              WidthRequest="16"
                              HeightRequest="3"
                              VerticalOptions="Center"/>
                     <Label Grid.Column="5"
-                           Text="HF Ratio"
+                           Text="HF Ratio (x100)"
                            FontSize="10"
                            VerticalOptions="Center"/>
                 </Grid>
@@ -122,21 +139,25 @@
         </Frame>
 
         <!-- Action Buttons -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
+        <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
             <Button Text="Back"
                     Command="{Binding GoBackCommand}"
                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                    TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                    SemanticProperties.Description="Go back"
+                    SemanticProperties.Hint="Navigate to the previous page"/>
 
             <Button Grid.Column="1"
                     Text="Refresh"
                     Command="{Binding RefreshCommand}"
                     BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"/>
+                    TextColor="White"
+                    SemanticProperties.Description="Refresh chart data"
+                    SemanticProperties.Hint="Reload measurement data and redraw the chart"/>
         </Grid>
 
         <!-- Loading Overlay -->
-        <Frame Grid.RowSpan="3"
+        <Frame Grid.RowSpan="4"
                BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}"
                IsVisible="{Binding IsBusy}"
                BorderColor="Transparent">
