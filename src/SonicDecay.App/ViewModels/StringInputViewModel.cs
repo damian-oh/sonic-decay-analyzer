@@ -98,7 +98,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeE1
         {
             get => _gaugeE1;
-            set => SetProperty(ref _gaugeE1, value);
+            set { if (SetProperty(ref _gaugeE1, value)) UpdateSaveCommand(); }
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeB2
         {
             get => _gaugeB2;
-            set => SetProperty(ref _gaugeB2, value);
+            set { if (SetProperty(ref _gaugeB2, value)) UpdateSaveCommand(); }
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeG3
         {
             get => _gaugeG3;
-            set => SetProperty(ref _gaugeG3, value);
+            set { if (SetProperty(ref _gaugeG3, value)) UpdateSaveCommand(); }
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeD4
         {
             get => _gaugeD4;
-            set => SetProperty(ref _gaugeD4, value);
+            set { if (SetProperty(ref _gaugeD4, value)) UpdateSaveCommand(); }
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeA5
         {
             get => _gaugeA5;
-            set => SetProperty(ref _gaugeA5, value);
+            set { if (SetProperty(ref _gaugeA5, value)) UpdateSaveCommand(); }
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeE6
         {
             get => _gaugeE6;
-            set => SetProperty(ref _gaugeE6, value);
+            set { if (SetProperty(ref _gaugeE6, value)) UpdateSaveCommand(); }
         }
 
         /// <summary>
@@ -273,17 +273,50 @@ namespace SonicDecay.App.ViewModels
 
         #region Private Methods
 
+        /// <summary>
+        /// Minimum valid string gauge in inches (0.006" for ultra-light high E).
+        /// </summary>
+        private const double MinGauge = 0.006;
+
+        /// <summary>
+        /// Maximum valid string gauge in inches (0.080" for heaviest bass strings).
+        /// </summary>
+        private const double MaxGauge = 0.080;
+
         private bool CanSave()
         {
             return !string.IsNullOrWhiteSpace(Brand) &&
-                   !string.IsNullOrWhiteSpace(Model);
+                   !string.IsNullOrWhiteSpace(Model) &&
+                   AreGaugesValid();
+        }
+
+        /// <summary>
+        /// Validates that all 6 gauge values fall within a physically reasonable range.
+        /// </summary>
+        private bool AreGaugesValid()
+        {
+            return IsGaugeInRange(GaugeE1) && IsGaugeInRange(GaugeB2) &&
+                   IsGaugeInRange(GaugeG3) && IsGaugeInRange(GaugeD4) &&
+                   IsGaugeInRange(GaugeA5) && IsGaugeInRange(GaugeE6);
+        }
+
+        private static bool IsGaugeInRange(double gauge)
+        {
+            return gauge >= MinGauge && gauge <= MaxGauge;
         }
 
         private async Task SaveAsync()
         {
             if (!CanSave())
             {
-                ErrorMessage = "Brand and Model are required";
+                if (string.IsNullOrWhiteSpace(Brand) || string.IsNullOrWhiteSpace(Model))
+                {
+                    ErrorMessage = "Brand and Model are required";
+                }
+                else if (!AreGaugesValid())
+                {
+                    ErrorMessage = $"All gauge values must be between {MinGauge:F3}\" and {MaxGauge:F3}\"";
+                }
                 return;
             }
 
