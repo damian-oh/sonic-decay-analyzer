@@ -25,7 +25,9 @@
                 <Picker Title="Select Guitar"
                         ItemsSource="{Binding Guitars}"
                         SelectedItem="{Binding SelectedGuitar}"
-                        ItemDisplayBinding="{Binding Name}"/>
+                        ItemDisplayBinding="{Binding Name}"
+                        SemanticProperties.Description="Guitar selection"
+                        SemanticProperties.Hint="Select a guitar to view its string set pairings"/>
             </Frame>
 
             <!-- No Guitars Message -->
@@ -166,13 +168,19 @@
         </ScrollView>
 
         <!-- Action Buttons -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
+        <Grid Grid.Row="2" ColumnDefinitions="*,*,*" ColumnSpacing="12" Margin="0,16,0,0">
             <Button Text="Back"
                     Command="{Binding GoBackCommand}"
                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                     TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
 
             <Button Grid.Column="1"
+                    Text="Add Pairing"
+                    Command="{Binding CreatePairingCommand}"
+                    BackgroundColor="{StaticResource AnalysisAccent}"
+                    TextColor="White"/>
+
+            <Button Grid.Column="2"
                     Text="Refresh"
                     Command="{Binding RefreshCommand}"
                     BackgroundColor="{StaticResource Primary}"

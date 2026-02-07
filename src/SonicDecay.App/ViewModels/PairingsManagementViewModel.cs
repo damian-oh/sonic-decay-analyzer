@@ -14,10 +14,10 @@ namespace SonicDecay.App.ViewModels
         private readonly IGuitarRepository _guitarRepository;
         private readonly IGuitarStringSetPairingRepository _pairingRepository;
         private readonly IStringSetRepository _stringSetRepository;
+        private readonly INotificationService _notificationService;
 
         private Guitar? _selectedGuitar;
         private PairingDisplayItem? _selectedPairing;
-        private string _errorMessage = string.Empty;
         private bool _hasData;
 
         /// <summary>
@@ -26,11 +26,13 @@ namespace SonicDecay.App.ViewModels
         public PairingsManagementViewModel(
             IGuitarRepository guitarRepository,
             IGuitarStringSetPairingRepository pairingRepository,
-            IStringSetRepository stringSetRepository)
+            IStringSetRepository stringSetRepository,
+            INotificationService notificationService)
         {
             _guitarRepository = guitarRepository ?? throw new ArgumentNullException(nameof(guitarRepository));
             _pairingRepository = pairingRepository ?? throw new ArgumentNullException(nameof(pairingRepository));
             _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
 
             Title = "Manage String Sets";
 
@@ -40,6 +42,7 @@ namespace SonicDecay.App.ViewModels
             // Initialize commands
             DeletePairingCommand = new AsyncRelayCommand<PairingDisplayItem>(DeletePairingAsync, p => p != null);
             SetActiveCommand = new AsyncRelayCommand<PairingDisplayItem>(SetActiveAsync, p => p != null && !p.IsActive);
+            CreatePairingCommand = new AsyncRelayCommand(CreatePairingAsync, () => SelectedGuitar != null);
             RefreshCommand = new AsyncRelayCommand(LoadPairingsAsync);
             GoBackCommand = new AsyncRelayCommand(GoBackAsync);
         }
@@ -67,6 +70,7 @@ namespace SonicDecay.App.ViewModels
                 if (SetProperty(ref _selectedGuitar, value))
                 {
                     _ = LoadPairingsAsync();
+                    (CreatePairingCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
@@ -78,15 +82,6 @@ namespace SonicDecay.App.ViewModels
         {
             get => _selectedPairing;
             set => SetProperty(ref _selectedPairing, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the current error message.
-        /// </summary>
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
         }
 
         /// <summary>
@@ -123,6 +118,11 @@ namespace SonicDecay.App.ViewModels
         public ICommand SetActiveCommand { get; }
 
         /// <summary>
+        /// Command to create a new pairing for the selected guitar.
+        /// </summary>
+        public ICommand CreatePairingCommand { get; }
+
+        /// <summary>
         /// Command to refresh the pairings list.
         /// </summary>
         public ICommand RefreshCommand { get; }
@@ -149,7 +149,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load data: {ex.Message}";
+                ShowError($"Failed to load data: {ex.Message}");
             }
             finally
             {
@@ -191,7 +191,7 @@ namespace SonicDecay.App.ViewModels
             }
 
             IsBusy = true;
-            ErrorMessage = string.Empty;
+            ClearError();
 
             try
             {
@@ -213,7 +213,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load pairings: {ex.Message}";
+                ShowError($"Failed to load pairings: {ex.Message}");
                 HasData = false;
             }
             finally
@@ -242,16 +242,17 @@ namespace SonicDecay.App.ViewModels
             }
 
             IsBusy = true;
-            ErrorMessage = string.Empty;
+            ClearError();
 
             try
             {
                 await _pairingRepository.DeleteAsync(pairing.Pairing.Id);
+                await _notificationService.ShowSuccessAsync("Pairing deleted successfully.");
                 await LoadPairingsAsync();
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to delete pairing: {ex.Message}";
+                ShowError($"Failed to delete pairing: {ex.Message}");
             }
             finally
             {
@@ -267,7 +268,7 @@ namespace SonicDecay.App.ViewModels
             }
 
             IsBusy = true;
-            ErrorMessage = string.Empty;
+            ClearError();
 
             try
             {
@@ -276,11 +277,71 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to set active pairing: {ex.Message}";
+                ShowError($"Failed to set active pairing: {ex.Message}");
             }
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        private async Task CreatePairingAsync()
+        {
+            if (SelectedGuitar == null)
+            {
+                ShowError("Select a guitar first");
+                return;
+            }
+
+            try
+            {
+                var allStringSets = await _stringSetRepository.GetAllAsync();
+                if (allStringSets.Count == 0)
+                {
+                    ShowError("No string sets available. Add a string set first.");
+                    return;
+                }
+
+                // Build action sheet options
+                var options = allStringSets
+                    .Select(s => $"{s.Brand} {s.Model}")
+                    .ToArray();
+
+                var selected = await Shell.Current.DisplayActionSheet(
+                    "Select String Set",
+                    "Cancel",
+                    null,
+                    options);
+
+                if (string.IsNullOrEmpty(selected) || selected == "Cancel")
+                {
+                    return;
+                }
+
+                // Find the selected string set
+                var index = Array.IndexOf(options, selected);
+                if (index < 0 || index >= allStringSets.Count)
+                {
+                    return;
+                }
+
+                var stringSet = allStringSets[index];
+
+                var pairing = new GuitarStringSetPairing
+                {
+                    GuitarId = SelectedGuitar.Id,
+                    SetId = stringSet.Id,
+                    InstalledAt = DateTime.Now,
+                    IsActive = true
+                };
+
+                await _pairingRepository.CreateAsync(pairing);
+                await _notificationService.ShowSuccessAsync($"Paired {stringSet.Brand} {stringSet.Model} to {SelectedGuitar.Name}.");
+                await LoadPairingsAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Failed to create pairing: {ex.Message}");
             }
         }
 
