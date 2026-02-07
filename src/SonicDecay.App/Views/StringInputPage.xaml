@@ -26,19 +26,29 @@
                            FontAttributes="Bold"/>
 
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Brand"
+                        <Label Text="Brand *"
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Brand}"
-                               Placeholder="e.g., GHS, Rotosound, Cleartone"/>
+                               Placeholder="e.g., GHS, Rotosound, Cleartone"
+                               SemanticProperties.Description="String brand name"/>
+                        <Label Text="{Binding BrandError}"
+                               FontSize="10"
+                               TextColor="{StaticResource HealthReplace}"
+                               IsVisible="{Binding BrandError, Converter={StaticResource StringNotEmptyConverter}}"/>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Model"
+                        <Label Text="Model *"
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <Entry Text="{Binding Model}"
-                               Placeholder="e.g., Boomers, Swing Bass, Custom Wound"/>
+                               Placeholder="e.g., Boomers, Swing Bass, Custom Wound"
+                               SemanticProperties.Description="String model name"/>
+                        <Label Text="{Binding ModelError}"
+                               FontSize="10"
+                               TextColor="{StaticResource HealthReplace}"
+                               IsVisible="{Binding ModelError, Converter={StaticResource StringNotEmptyConverter}}"/>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Frame>
@@ -181,6 +191,12 @@
                                Keyboard="Numeric"
                                Placeholder="0.046"/>
                     </Grid>
+
+                    <!-- Gauge validation error -->
+                    <Label Text="{Binding GaugeError}"
+                           FontSize="10"
+                           TextColor="{StaticResource HealthReplace}"
+                           IsVisible="{Binding GaugeError, Converter={StaticResource StringNotEmptyConverter}}"/>
                 </VerticalStackLayout>
             </Frame>
 

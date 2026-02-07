@@ -12,6 +12,7 @@ namespace SonicDecay.App.ViewModels
     {
         private readonly IStringSetRepository _stringSetRepository;
         private readonly IStringBaselineRepository _baselineRepository;
+        private readonly INotificationService _notificationService;
 
         private string _brand = string.Empty;
         private string _model = string.Empty;
@@ -24,10 +25,12 @@ namespace SonicDecay.App.ViewModels
         private double _gaugeA5 = 0.036;
         private double _gaugeE6 = 0.046;
 
-        private string _errorMessage = string.Empty;
         private bool _isEditing;
         private int? _editingSetId;
         private string? _selectedPreset = "light"; // Default to light gauge
+        private string _brandError = string.Empty;
+        private string _modelError = string.Empty;
+        private string _gaugeError = string.Empty;
 
         /// <summary>
         /// Standard tuning fundamental frequencies for each string.
@@ -47,10 +50,12 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public StringInputViewModel(
             IStringSetRepository stringSetRepository,
-            IStringBaselineRepository baselineRepository)
+            IStringBaselineRepository baselineRepository,
+            INotificationService notificationService)
         {
             _stringSetRepository = stringSetRepository ?? throw new ArgumentNullException(nameof(stringSetRepository));
             _baselineRepository = baselineRepository ?? throw new ArgumentNullException(nameof(baselineRepository));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
 
             Title = "Custom String Set";
 
@@ -72,9 +77,19 @@ namespace SonicDecay.App.ViewModels
             {
                 if (SetProperty(ref _brand, value))
                 {
+                    BrandError = string.IsNullOrWhiteSpace(value) ? "Brand is required" : string.Empty;
                     UpdateSaveCommand();
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the inline validation error for the Brand field.
+        /// </summary>
+        public string BrandError
+        {
+            get => _brandError;
+            private set => SetProperty(ref _brandError, value);
         }
 
         /// <summary>
@@ -87,9 +102,19 @@ namespace SonicDecay.App.ViewModels
             {
                 if (SetProperty(ref _model, value))
                 {
+                    ModelError = string.IsNullOrWhiteSpace(value) ? "Model is required" : string.Empty;
                     UpdateSaveCommand();
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the inline validation error for the Model field.
+        /// </summary>
+        public string ModelError
+        {
+            get => _modelError;
+            private set => SetProperty(ref _modelError, value);
         }
 
         /// <summary>
@@ -98,7 +123,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeE1
         {
             get => _gaugeE1;
-            set { if (SetProperty(ref _gaugeE1, value)) UpdateSaveCommand(); }
+            set { if (SetProperty(ref _gaugeE1, value)) { ValidateGauges(); UpdateSaveCommand(); } }
         }
 
         /// <summary>
@@ -107,7 +132,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeB2
         {
             get => _gaugeB2;
-            set { if (SetProperty(ref _gaugeB2, value)) UpdateSaveCommand(); }
+            set { if (SetProperty(ref _gaugeB2, value)) { ValidateGauges(); UpdateSaveCommand(); } }
         }
 
         /// <summary>
@@ -116,7 +141,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeG3
         {
             get => _gaugeG3;
-            set { if (SetProperty(ref _gaugeG3, value)) UpdateSaveCommand(); }
+            set { if (SetProperty(ref _gaugeG3, value)) { ValidateGauges(); UpdateSaveCommand(); } }
         }
 
         /// <summary>
@@ -125,7 +150,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeD4
         {
             get => _gaugeD4;
-            set { if (SetProperty(ref _gaugeD4, value)) UpdateSaveCommand(); }
+            set { if (SetProperty(ref _gaugeD4, value)) { ValidateGauges(); UpdateSaveCommand(); } }
         }
 
         /// <summary>
@@ -134,7 +159,7 @@ namespace SonicDecay.App.ViewModels
         public double GaugeA5
         {
             get => _gaugeA5;
-            set { if (SetProperty(ref _gaugeA5, value)) UpdateSaveCommand(); }
+            set { if (SetProperty(ref _gaugeA5, value)) { ValidateGauges(); UpdateSaveCommand(); } }
         }
 
         /// <summary>
@@ -143,16 +168,16 @@ namespace SonicDecay.App.ViewModels
         public double GaugeE6
         {
             get => _gaugeE6;
-            set { if (SetProperty(ref _gaugeE6, value)) UpdateSaveCommand(); }
+            set { if (SetProperty(ref _gaugeE6, value)) { ValidateGauges(); UpdateSaveCommand(); } }
         }
 
         /// <summary>
-        /// Gets or sets the current error message.
+        /// Gets the gauge validation error text, if any.
         /// </summary>
-        public string ErrorMessage
+        public string GaugeError
         {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
+            get => _gaugeError;
+            private set => SetProperty(ref _gaugeError, value);
         }
 
         /// <summary>
@@ -236,7 +261,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load string set: {ex.Message}";
+                ShowError($"Failed to load string set: {ex.Message}");
             }
             finally
             {
@@ -266,7 +291,7 @@ namespace SonicDecay.App.ViewModels
             // Reset preset selection to match light gauge
             SelectedPreset = "light";
 
-            ErrorMessage = string.Empty;
+            ClearError();
         }
 
         #endregion
@@ -311,34 +336,36 @@ namespace SonicDecay.App.ViewModels
             {
                 if (string.IsNullOrWhiteSpace(Brand) || string.IsNullOrWhiteSpace(Model))
                 {
-                    ErrorMessage = "Brand and Model are required";
+                    ShowError("Brand and Model are required");
                 }
                 else if (!AreGaugesValid())
                 {
-                    ErrorMessage = $"All gauge values must be between {MinGauge:F3}\" and {MaxGauge:F3}\"";
+                    ShowError($"All gauge values must be between {MinGauge:F3}\" and {MaxGauge:F3}\"");
                 }
                 return;
             }
 
             IsBusy = true;
-            ErrorMessage = string.Empty;
+            ClearError();
 
             try
             {
                 if (IsEditing && _editingSetId.HasValue)
                 {
                     await UpdateExistingSetAsync();
+                    await _notificationService.ShowSuccessAsync("String set updated successfully.");
                 }
                 else
                 {
                     await CreateNewSetAsync();
+                    await _notificationService.ShowSuccessAsync("String set saved successfully.");
                 }
 
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to save: {ex.Message}";
+                ShowError($"Failed to save: {ex.Message}");
             }
             finally
             {
@@ -391,7 +418,7 @@ namespace SonicDecay.App.ViewModels
             var existingSet = await _stringSetRepository.GetByIdAsync(_editingSetId.Value);
             if (existingSet == null)
             {
-                ErrorMessage = "String set not found";
+                ShowError("String set not found");
                 return;
             }
 
@@ -460,6 +487,13 @@ namespace SonicDecay.App.ViewModels
                 nameof(GaugeE1), nameof(GaugeB2), nameof(GaugeG3),
                 nameof(GaugeD4), nameof(GaugeA5), nameof(GaugeE6),
                 nameof(GaugeSummary));
+        }
+
+        private void ValidateGauges()
+        {
+            GaugeError = AreGaugesValid()
+                ? string.Empty
+                : $"Gauges must be {MinGauge:F3}\"-{MaxGauge:F3}\"";
         }
 
         private void UpdateSaveCommand()
