@@ -26,7 +26,6 @@ namespace SonicDecay.App.ViewModels
         private bool _isAnalyzing;
         private bool _hasPermission;
         private string _statusMessage = "Ready to analyze";
-        private string _errorMessage = string.Empty;
 
         // Guitar selection
         private Guitar? _selectedGuitar;
@@ -116,6 +115,7 @@ namespace SonicDecay.App.ViewModels
             NavigateToPairingsCommand = new AsyncRelayCommand(NavigateToPairingsAsync);
             NavigateToLibraryCommand = new AsyncRelayCommand(NavigateToLibraryAsync);
             ToggleContextExpandedCommand = new RelayCommand(ToggleContextExpanded);
+            CancelBaselineCommand = new RelayCommand(CancelBaseline, () => IsEstablishingBaseline);
 
             // Subscribe to audio capture events
             _audioCaptureService.BufferCaptured += OnBufferCaptured;
@@ -322,6 +322,32 @@ namespace SonicDecay.App.ViewModels
             : "No baseline - establish fresh string reference";
 
         /// <summary>
+        /// Gets a value indicating whether a baseline capture is in progress.
+        /// Bound to UI for showing the listening banner and cancel button.
+        /// </summary>
+        public bool IsEstablishingBaseline
+        {
+            get => _isEstablishingBaseline;
+            private set
+            {
+                if (SetProperty(ref _isEstablishingBaseline, value))
+                {
+                    (CancelBaselineCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the baseline was just successfully captured.
+        /// Auto-clears after a brief display period.
+        /// </summary>
+        public bool BaselineSuccess
+        {
+            get => _baselineSuccess;
+            private set => SetProperty(ref _baselineSuccess, value);
+        }
+
+        /// <summary>
         /// Gets or sets whether the context section is expanded.
         /// </summary>
         public bool IsContextExpanded
@@ -329,6 +355,18 @@ namespace SonicDecay.App.ViewModels
             get => _isContextExpanded;
             set => SetProperty(ref _isContextExpanded, value);
         }
+
+        /// <summary>
+        /// Gets a value indicating whether initial setup is complete
+        /// (at least one guitar and one string set exist).
+        /// When false, an onboarding card is shown instead of metrics.
+        /// </summary>
+        public bool HasCompletedSetup => Guitars.Count > 0 && StringSets.Count > 0;
+
+        /// <summary>
+        /// Gets a value indicating whether the onboarding card should be shown.
+        /// </summary>
+        public bool ShowOnboarding => !HasCompletedSetup;
 
         /// <summary>
         /// Gets a one-line summary of the current selection (guitar, string set, string number).
@@ -353,15 +391,6 @@ namespace SonicDecay.App.ViewModels
         {
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
-        }
-
-        /// <summary>
-        /// Gets or sets the current error message.
-        /// </summary>
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
         }
 
         /// <summary>
@@ -450,6 +479,8 @@ namespace SonicDecay.App.ViewModels
                     OnPropertyChanged(nameof(EstimatedHoursRemainingText));
                     OnPropertyChanged(nameof(ProjectedReplacementDateText));
                     OnPropertyChanged(nameof(RecommendationConfidenceText));
+                    OnPropertyChanged(nameof(RecommendationFactors));
+                    OnPropertyChanged(nameof(HasRecommendationFactors));
                 }
             }
         }
@@ -479,11 +510,11 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public string RecommendationUrgencyText => Recommendation?.Urgency switch
         {
-            ReplacementUrgency.None => "Excellent",
-            ReplacementUrgency.Monitor => "Monitor",
-            ReplacementUrgency.Soon => "Soon",
-            ReplacementUrgency.Recommended => "Recommended",
-            ReplacementUrgency.Urgent => "Urgent",
+            ReplacementUrgency.None => "\u2714 Excellent",
+            ReplacementUrgency.Monitor => "\u25C9 Monitor",
+            ReplacementUrgency.Soon => "\u25B2 Soon",
+            ReplacementUrgency.Recommended => "\u26A0 Recommended",
+            ReplacementUrgency.Urgent => "\u2716 Urgent",
             _ => "Unknown"
         };
 
@@ -492,11 +523,11 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public Color RecommendationUrgencyColor => Recommendation?.Urgency switch
         {
-            ReplacementUrgency.None => Color.FromArgb("#22c55e"),       // Green
-            ReplacementUrgency.Monitor => Color.FromArgb("#3b82f6"),    // Blue
-            ReplacementUrgency.Soon => Color.FromArgb("#eab308"),       // Yellow
-            ReplacementUrgency.Recommended => Color.FromArgb("#f97316"), // Orange
-            ReplacementUrgency.Urgent => Color.FromArgb("#ef4444"),     // Red
+            ReplacementUrgency.None => GetResourceColor("UrgencyNone"),
+            ReplacementUrgency.Monitor => GetResourceColor("UrgencyMonitor"),
+            ReplacementUrgency.Soon => GetResourceColor("UrgencySoon"),
+            ReplacementUrgency.Recommended => GetResourceColor("UrgencyRecommended"),
+            ReplacementUrgency.Urgent => GetResourceColor("UrgencyUrgent"),
             _ => Colors.Gray
         };
 
@@ -520,6 +551,16 @@ namespace SonicDecay.App.ViewModels
         public string RecommendationConfidenceText => Recommendation != null
             ? $"{Recommendation.ConfidencePercentage:F0}%"
             : "—";
+
+        /// <summary>
+        /// Gets the factors that influenced the recommendation.
+        /// </summary>
+        public List<string> RecommendationFactors => Recommendation?.Factors ?? new List<string>();
+
+        /// <summary>
+        /// Gets a value indicating whether there are recommendation factors to display.
+        /// </summary>
+        public bool HasRecommendationFactors => RecommendationFactors.Count > 0;
 
         #endregion
 
@@ -590,6 +631,11 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public ICommand ToggleContextExpandedCommand { get; }
 
+        /// <summary>
+        /// Command to cancel an in-progress baseline capture.
+        /// </summary>
+        public ICommand CancelBaselineCommand { get; }
+
         #endregion
 
         #region Public Methods
@@ -613,6 +659,8 @@ namespace SonicDecay.App.ViewModels
 
             try
             {
+                ClearError();
+
                 // Check microphone permission (always re-check in case it was revoked)
                 HasPermission = await _permissionService.HasMicrophonePermissionAsync();
 
@@ -622,13 +670,16 @@ namespace SonicDecay.App.ViewModels
                 await LoadStringSetsAsync();
                 await LoadGuitarsAsync();
 
+                OnPropertyChanged(nameof(HasCompletedSetup));
+                OnPropertyChanged(nameof(ShowOnboarding));
+
                 StatusMessage = HasPermission
                     ? "Ready - select a guitar and string set to begin"
                     : "Microphone permission required";
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Initialization failed: {ex.Message}";
+                ShowError($"Initialization failed: {ex.Message}");
             }
             finally
             {
@@ -666,29 +717,29 @@ namespace SonicDecay.App.ViewModels
             // Validate all required selections
             if (string.IsNullOrEmpty(SelectedBrand))
             {
-                ErrorMessage = "Please select a string brand first";
+                ShowError("Please select a string brand first");
                 return;
             }
 
             if (SelectedStringSet == null)
             {
-                ErrorMessage = "Please select a string model first";
+                ShowError("Please select a string model first");
                 return;
             }
 
             if (SelectedStringNumber < 1 || SelectedStringNumber > 6)
             {
-                ErrorMessage = "Please select a string number (1-6)";
+                ShowError("Please select a string number (1-6)");
                 return;
             }
 
             if (SelectedBaseline == null)
             {
-                ErrorMessage = "No baseline found for this string - please ensure string set is properly configured";
+                ShowError("No baseline found for this string - please ensure string set is properly configured");
                 return;
             }
 
-            ErrorMessage = string.Empty;
+            ClearError();
             StatusMessage = "Starting capture...";
 
             var success = await _audioCaptureService.StartCaptureAsync();
@@ -697,7 +748,7 @@ namespace SonicDecay.App.ViewModels
                 // Only set generic error if no specific error was already set by the service
                 if (string.IsNullOrEmpty(ErrorMessage))
                 {
-                    ErrorMessage = "Failed to start audio capture";
+                    ShowError("Failed to start audio capture");
                 }
                 StatusMessage = "Capture failed";
             }
@@ -764,7 +815,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load string sets: {ex.Message}";
+                ShowError($"Failed to load string sets: {ex.Message}");
             }
         }
 
@@ -818,7 +869,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load baseline: {ex.Message}";
+                ShowError($"Failed to load baseline: {ex.Message}");
             }
         }
 
@@ -851,7 +902,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to check baseline status: {ex.Message}";
+                ShowError($"Failed to check baseline status: {ex.Message}");
             }
         }
 
@@ -868,7 +919,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load history: {ex.Message}";
+                ShowError($"Failed to load history: {ex.Message}");
             }
         }
 
@@ -888,7 +939,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load recommendation: {ex.Message}";
+                ShowError($"Failed to load recommendation: {ex.Message}");
                 Recommendation = null;
             }
             finally
@@ -897,22 +948,57 @@ namespace SonicDecay.App.ViewModels
             }
         }
 
-        private Task EstablishBaselineAsync()
+        private async Task EstablishBaselineAsync()
         {
             if (SelectedBaseline == null)
             {
-                ErrorMessage = "No baseline selected";
-                return Task.CompletedTask;
+                ShowError("No baseline selected");
+                return;
             }
 
-            StatusMessage = "Play the string to capture baseline...";
-            // Note: The actual baseline capture happens in OnBufferCaptured
-            // when the user plays the string. This method sets the flag.
-            _isEstablishingBaseline = true;
-            return Task.CompletedTask;
+            StatusMessage = "Listening... play the string to capture baseline";
+            IsEstablishingBaseline = true;
+            BaselineSuccess = false;
+
+            // Start 30-second timeout
+            _baselineTimeoutCts?.Cancel();
+            _baselineTimeoutCts = new CancellationTokenSource();
+            var token = _baselineTimeoutCts.Token;
+
+            try
+            {
+                await Task.Delay(30000, token);
+
+                // If we get here, timeout elapsed without cancellation
+                if (IsEstablishingBaseline)
+                {
+                    IsEstablishingBaseline = false;
+                    ShowError("Baseline capture timed out (30s). Try again.");
+                    StatusMessage = "Baseline timeout - ready to retry";
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Cancelled by successful capture or manual cancel -- expected
+            }
+        }
+
+        private void CancelBaseline()
+        {
+            _baselineTimeoutCts?.Cancel();
+            IsEstablishingBaseline = false;
+            StatusMessage = "Baseline capture cancelled";
+        }
+
+        private async Task DismissBaselineSuccessAsync()
+        {
+            await Task.Delay(3000);
+            BaselineSuccess = false;
         }
 
         private bool _isEstablishingBaseline;
+        private bool _baselineSuccess;
+        private CancellationTokenSource? _baselineTimeoutCts;
         private bool _isDisposed;
 
         private async Task NavigateToStringInputAsync()
@@ -970,7 +1056,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load guitars: {ex.Message}";
+                ShowError($"Failed to load guitars: {ex.Message}");
             }
         }
 
@@ -1013,7 +1099,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load guitar's string sets: {ex.Message}";
+                ShowError($"Failed to load guitar's string sets: {ex.Message}");
             }
         }
 
@@ -1035,7 +1121,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load string set: {ex.Message}";
+                ShowError($"Failed to load string set: {ex.Message}");
             }
 
             return Task.CompletedTask;
@@ -1045,7 +1131,7 @@ namespace SonicDecay.App.ViewModels
         {
             if (_selectedPairingItem == null)
             {
-                ErrorMessage = "No pairing selected";
+                ShowError("No pairing selected");
                 return;
             }
 
@@ -1076,7 +1162,7 @@ namespace SonicDecay.App.ViewModels
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to delete pairing: {ex.Message}";
+                ShowError($"Failed to delete pairing: {ex.Message}");
             }
         }
 
@@ -1116,7 +1202,7 @@ namespace SonicDecay.App.ViewModels
 
             try
             {
-                if (_isEstablishingBaseline)
+                if (IsEstablishingBaseline)
                 {
                     // Establish new baseline
                     var success = await _measurementService.EstablishBaselineAsync(
@@ -1125,20 +1211,26 @@ namespace SonicDecay.App.ViewModels
 
                     if (success)
                     {
+                        _baselineTimeoutCts?.Cancel();
                         await MainThread.InvokeOnMainThreadAsync(async () =>
                         {
+                            IsEstablishingBaseline = false;
                             StatusMessage = "Baseline established successfully";
-                            _isEstablishingBaseline = false;
+                            BaselineSuccess = true;
                             await LoadBaselineForStringAsync();
                             await UpdateAllBaselineStatusAsync();
+
+                            // Auto-dismiss success banner after 3 seconds
+                            _ = DismissBaselineSuccessAsync();
                         });
                     }
                     else
                     {
+                        _baselineTimeoutCts?.Cancel();
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
-                            ErrorMessage = "Failed to establish baseline";
-                            _isEstablishingBaseline = false;
+                            IsEstablishingBaseline = false;
+                            ShowError("Failed to establish baseline");
                         });
                     }
                 }
@@ -1175,7 +1267,7 @@ namespace SonicDecay.App.ViewModels
                         }
                         else
                         {
-                            ErrorMessage = result.ErrorMessage ?? "Analysis failed";
+                            ShowError(result.ErrorMessage ?? "Analysis failed");
                         }
                     });
                 }
@@ -1184,7 +1276,7 @@ namespace SonicDecay.App.ViewModels
             {
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    ErrorMessage = $"Analysis error: {ex.Message}";
+                    ShowError($"Analysis error: {ex.Message}");
                 });
             }
             finally
@@ -1219,7 +1311,7 @@ namespace SonicDecay.App.ViewModels
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 if (_isDisposed) return;
-                ErrorMessage = e.Message;
+                ShowError(e.Message);
                 StatusMessage = "Capture error occurred";
             });
         }
@@ -1234,24 +1326,36 @@ namespace SonicDecay.App.ViewModels
 
             if (DecayPercentage < 15)
             {
-                HealthStatus = "Excellent";
-                HealthColor = Color.FromArgb("#22c55e"); // Green
+                HealthStatus = "\u2714 Excellent";   // Checkmark
+                HealthColor = GetResourceColor("HealthExcellent");
             }
             else if (DecayPercentage < 30)
             {
-                HealthStatus = "Good";
-                HealthColor = Color.FromArgb("#eab308"); // Yellow
+                HealthStatus = "\u25C9 Monitor";      // Fisheye/target
+                HealthColor = GetResourceColor("HealthGood");
             }
             else if (DecayPercentage < 50)
             {
-                HealthStatus = "Fair";
-                HealthColor = Color.FromArgb("#f97316"); // Orange
+                HealthStatus = "\u26A0 Fair";          // Warning triangle
+                HealthColor = GetResourceColor("HealthFair");
             }
             else
             {
-                HealthStatus = "Replace";
-                HealthColor = Color.FromArgb("#ef4444"); // Red
+                HealthStatus = "\u2716 Replace";       // Heavy X
+                HealthColor = GetResourceColor("HealthReplace");
             }
+        }
+
+        /// <summary>
+        /// Retrieves a Color resource from the application resource dictionary.
+        /// </summary>
+        private static Color GetResourceColor(string key)
+        {
+            if (Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color)
+            {
+                return color;
+            }
+            return Colors.Gray;
         }
 
         /// <summary>
@@ -1362,9 +1466,18 @@ namespace SonicDecay.App.ViewModels
         /// <summary>
         /// Gets the status color based on baseline state.
         /// </summary>
-        public Color StatusColor => HasBaseline
-            ? Color.FromArgb("#22c55e")  // Green for established
-            : Color.FromArgb("#9ca3af"); // Gray for not set
+        public Color StatusColor
+        {
+            get
+            {
+                var key = HasBaseline ? "BaselineEstablished" : "BaselineNotSet";
+                if (Application.Current?.Resources.TryGetValue(key, out var value) == true && value is Color color)
+                {
+                    return color;
+                }
+                return HasBaseline ? Colors.Green : Colors.Gray;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of StringNumberItem.

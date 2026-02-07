@@ -38,8 +38,8 @@
                                TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
                                VerticalOptions="Center"/>
                     </Grid>
-                    <!-- Content: visible when expanded -->
-                    <VerticalStackLayout Spacing="8" Margin="0,12,0,0"
+                    <!-- Content: visible when expanded (animated in code-behind) -->
+                    <VerticalStackLayout x:Name="ContextContent" Spacing="8" Margin="0,12,0,0"
                                          IsVisible="{Binding IsContextExpanded}">
 
                         <!-- Guitar Selection -->
@@ -192,6 +192,91 @@
         <!-- Main Analysis Display -->
         <ScrollView Grid.Row="1" Margin="0,16,0,0">
             <VerticalStackLayout Spacing="16">
+
+                <!-- Onboarding Card (first-run guidance) -->
+                <Frame BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                       Padding="24"
+                       CornerRadius="16"
+                       BorderColor="{StaticResource AnalysisAccent}"
+                       IsVisible="{Binding ShowOnboarding}">
+                    <VerticalStackLayout Spacing="16" HorizontalOptions="Center">
+                        <Label Text="Welcome to Sonic Decay Analyzer"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Get started by setting up your gear:"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Center"/>
+
+                        <VerticalStackLayout Spacing="12">
+                            <Grid ColumnDefinitions="24,*" ColumnSpacing="12">
+                                <Label Text="1." FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Button Grid.Column="1" Text="Add a Guitar"
+                                        Command="{Binding NavigateToGuitarInputCommand}"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        TextColor="White"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="24,*" ColumnSpacing="12">
+                                <Label Text="2." FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Button Grid.Column="1" Text="Add String Set"
+                                        Command="{Binding NavigateToStringInputCommand}"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        TextColor="White"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="24,*" ColumnSpacing="12">
+                                <Label Text="3." FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Label Grid.Column="1" Text="Pair strings to guitar, set baseline, then measure"
+                                       FontSize="14"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Baseline Listening Banner -->
+                <Frame BackgroundColor="{StaticResource AnalysisAccent}"
+                       Padding="12"
+                       CornerRadius="8"
+                       BorderColor="Transparent"
+                       IsVisible="{Binding IsEstablishingBaseline}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <ActivityIndicator Grid.Column="0"
+                                           IsRunning="{Binding IsEstablishingBaseline}"
+                                           Color="White"
+                                           HeightRequest="20"
+                                           WidthRequest="20"/>
+                        <Label Grid.Column="1"
+                               Text="Listening... play the string now"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               VerticalOptions="Center"/>
+                        <Button Grid.Column="2"
+                                Text="Cancel"
+                                FontSize="12"
+                                Padding="8,4"
+                                Command="{Binding CancelBaselineCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                BorderColor="White"
+                                BorderWidth="1"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Baseline Success Banner -->
+                <Frame BackgroundColor="{StaticResource HealthExcellent}"
+                       Padding="12"
+                       CornerRadius="8"
+                       BorderColor="Transparent"
+                       IsVisible="{Binding BaselineSuccess}">
+                    <Label Text="Baseline captured successfully"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"/>
+                </Frame>
 
                 <!-- Health Indicator Card -->
                 <Frame BackgroundColor="{Binding HealthColor}"
@@ -385,6 +470,25 @@
                             </VerticalStackLayout>
                         </Grid>
 
+                        <!-- Confidence Factors -->
+                        <VerticalStackLayout Spacing="4"
+                                             IsVisible="{Binding HasRecommendationFactors}">
+                            <Label Text="Contributing Factors"
+                                   FontSize="10"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding RecommendationFactors}"
+                                                 Spacing="2">
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Label Text="{Binding .}"
+                                               FontSize="11"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsLoadingRecommendation}"
                                            IsVisible="{Binding IsLoadingRecommendation}"
@@ -520,7 +624,16 @@
                     IsVisible="{Binding HasPermission}"
                     IsEnabled="{Binding IsCapturing}"
                     SemanticProperties.Description="Set baseline measurement"
-                    SemanticProperties.Hint="Record the fresh string reference measurement"/>
+                    SemanticProperties.Hint="Record the fresh string reference measurement">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsEstablishingBaseline}" Value="True">
+                        <Setter Property="Text" Value="Cancel Baseline"/>
+                        <Setter Property="Command" Value="{Binding CancelBaselineCommand}"/>
+                        <Setter Property="BackgroundColor" Value="{StaticResource HealthFair}"/>
+                        <Setter Property="IsEnabled" Value="True"/>
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
         </Grid>
 
         <!-- Loading Overlay -->

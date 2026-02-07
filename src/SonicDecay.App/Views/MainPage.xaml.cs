@@ -18,6 +18,8 @@ namespace SonicDecay.App.Views
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = viewModel;
+
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         }
 
         /// <inheritdoc />
@@ -34,6 +36,35 @@ namespace SonicDecay.App.Views
             // Clean up when page is navigated away from
             // ViewModel will re-subscribe to events in InitializeAsync on next appearance
             await _viewModel.CleanupAsync();
+        }
+
+        /// <summary>
+        /// Animates the context section expand/collapse transition.
+        /// </summary>
+        private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainViewModel.IsContextExpanded) && ContextContent != null)
+            {
+                if (_viewModel.IsContextExpanded)
+                {
+                    ContextContent.IsVisible = true;
+                    ContextContent.Opacity = 0;
+                    ContextContent.TranslationY = -10;
+                    ContextContent.FadeTo(1, 200, Easing.CubicOut);
+                    ContextContent.TranslateTo(0, 0, 200, Easing.CubicOut);
+                }
+                else
+                {
+                    ContextContent.FadeTo(0, 150, Easing.CubicIn);
+                    ContextContent.TranslateTo(0, -10, 150, Easing.CubicIn).ContinueWith(_ =>
+                    {
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            ContextContent.IsVisible = false;
+                        });
+                    });
+                }
+            }
         }
     }
 }
