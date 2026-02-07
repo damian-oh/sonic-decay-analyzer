@@ -33,7 +33,9 @@
                                 Command="{Binding NavigateToGuitarsCommand}"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="White"
-                                HorizontalOptions="Start"/>
+                                HorizontalOptions="Start"
+                                SemanticProperties.Description="Open guitars list"
+                                SemanticProperties.Hint="Navigate to the guitars management page"/>
                     </VerticalStackLayout>
                 </Frame>
 
@@ -52,7 +54,9 @@
                                 Command="{Binding NavigateToStringSetsCommand}"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="White"
-                                HorizontalOptions="Start"/>
+                                HorizontalOptions="Start"
+                                SemanticProperties.Description="Open string sets list"
+                                SemanticProperties.Hint="Navigate to the string sets management page"/>
                     </VerticalStackLayout>
                 </Frame>
 
@@ -71,7 +75,9 @@
                                 Command="{Binding NavigateToPairingsCommand}"
                                 BackgroundColor="{StaticResource AnalysisAccent}"
                                 TextColor="White"
-                                HorizontalOptions="Start"/>
+                                HorizontalOptions="Start"
+                                SemanticProperties.Description="Open pairings manager"
+                                SemanticProperties.Hint="Navigate to the guitar-string set pairings page"/>
                     </VerticalStackLayout>
                 </Frame>
 
@@ -83,7 +89,9 @@
                 Command="{Binding GoBackCommand}"
                 Margin="0,16,0,0"
                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"/>
+                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}"
+                SemanticProperties.Description="Go back"
+                SemanticProperties.Hint="Navigate to the previous page"/>
 
     </Grid>
 
