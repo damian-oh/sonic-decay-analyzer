@@ -64,4 +64,20 @@
     <SolidColorBrush x:Key="AnalysisBackgroundBrush" Color="{StaticResource AnalysisBackground}"/>
     <SolidColorBrush x:Key="AnalysisAccentBrush" Color="{StaticResource AnalysisAccent}"/>
     <SolidColorBrush x:Key="MeterBackgroundBrush" Color="{StaticResource MeterBackground}"/>
+
+    <!-- Chart Series Colors -->
+    <Color x:Key="ChartDecay">#FF4500</Color>
+    <Color x:Key="ChartCentroid">#1E90FF</Color>
+    <Color x:Key="ChartHfRatio">#9370DB</Color>
+
+    <!-- Recommendation Urgency Colors -->
+    <Color x:Key="UrgencyNone">#22c55e</Color>
+    <Color x:Key="UrgencyMonitor">#3b82f6</Color>
+    <Color x:Key="UrgencySoon">#eab308</Color>
+    <Color x:Key="UrgencyRecommended">#f97316</Color>
+    <Color x:Key="UrgencyUrgent">#ef4444</Color>
+
+    <!-- Baseline Status Colors -->
+    <Color x:Key="BaselineEstablished">#22c55e</Color>
+    <Color x:Key="BaselineNotSet">#9ca3af</Color>
 </ResourceDictionary>
