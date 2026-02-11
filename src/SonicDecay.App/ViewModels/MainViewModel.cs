@@ -116,6 +116,10 @@ namespace SonicDecay.App.ViewModels
             NavigateToLibraryCommand = new AsyncRelayCommand(NavigateToLibraryAsync);
             ToggleContextExpandedCommand = new RelayCommand(ToggleContextExpanded);
             CancelBaselineCommand = new RelayCommand(CancelBaseline, () => IsEstablishingBaseline);
+            SelectStringCommand = new RelayCommand<object>(SelectString);
+
+            // Initialize first string as selected
+            StringNumbers[0].IsSelected = true;
 
             // Subscribe to audio capture events
             _audioCaptureService.BufferCaptured += OnBufferCaptured;
@@ -247,6 +251,7 @@ namespace SonicDecay.App.ViewModels
             {
                 if (SetProperty(ref _selectedStringNumber, value))
                 {
+                    UpdateStringNumberSelection();
                     _ = LoadBaselineForStringAsync();
                     OnPropertyChanged(nameof(ContextSummaryText));
                 }
@@ -636,6 +641,12 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public ICommand CancelBaselineCommand { get; }
 
+        /// <summary>
+        /// Command to select a string number via tappable indicator.
+        /// Accepts a string parameter ("1"-"6") from XAML CommandParameter.
+        /// </summary>
+        public ICommand SelectStringCommand { get; }
+
         #endregion
 
         #region Public Methods
@@ -1024,6 +1035,29 @@ namespace SonicDecay.App.ViewModels
         private void ToggleContextExpanded()
         {
             IsContextExpanded = !IsContextExpanded;
+        }
+
+        /// <summary>
+        /// Handles string selection from tappable indicator.
+        /// </summary>
+        private void SelectString(object? param)
+        {
+            if (param is string s && int.TryParse(s, out var num) && num >= 1 && num <= 6)
+            {
+                SelectedStringNumber = num;
+                UpdateStringNumberSelection();
+            }
+        }
+
+        /// <summary>
+        /// Syncs the IsSelected state across all StringNumberItems.
+        /// </summary>
+        private void UpdateStringNumberSelection()
+        {
+            foreach (var item in StringNumbers)
+            {
+                item.IsSelected = item.Number == SelectedStringNumber;
+            }
         }
 
         private async Task NavigateToChartAsync()
@@ -1419,6 +1453,7 @@ namespace SonicDecay.App.ViewModels
     public class StringNumberItem : INotifyPropertyChanged
     {
         private bool _hasBaseline;
+        private bool _isSelected;
 
         /// <summary>
         /// Occurs when a property value changes.
@@ -1441,6 +1476,11 @@ namespace SonicDecay.App.ViewModels
         public string ShortName { get; }
 
         /// <summary>
+        /// Gets the short note label for display (E1, B2, G3, D4, A5, E6).
+        /// </summary>
+        public string NoteLabel { get; }
+
+        /// <summary>
         /// Gets or sets whether this string has a baseline established.
         /// </summary>
         public bool HasBaseline
@@ -1454,6 +1494,22 @@ namespace SonicDecay.App.ViewModels
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasBaseline)));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusIcon)));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusColor)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether this string is currently selected.
+        /// </summary>
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
                 }
             }
         }
@@ -1487,6 +1543,16 @@ namespace SonicDecay.App.ViewModels
             Number = number;
             DisplayName = displayName;
             ShortName = displayName.Split(' ')[0]; // e.g., "High" from "High E (1)"
+            NoteLabel = number switch
+            {
+                1 => "E1",
+                2 => "B2",
+                3 => "G3",
+                4 => "D4",
+                5 => "A5",
+                6 => "E6",
+                _ => $"#{number}"
+            };
         }
 
         /// <inheritdoc />
