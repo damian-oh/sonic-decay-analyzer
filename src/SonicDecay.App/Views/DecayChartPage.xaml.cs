@@ -6,6 +6,7 @@ namespace SonicDecay.App.Views
     /// Full-screen decay trend chart page.
     /// </summary>
     [QueryProperty(nameof(BaselineId), "baselineId")]
+    [QueryProperty(nameof(SetId), "setId")]
     public partial class DecayChartPage : ContentPage
     {
         private readonly DecayChartViewModel _viewModel;
@@ -14,6 +15,11 @@ namespace SonicDecay.App.Views
         /// Gets or sets the baseline ID passed via navigation (query string).
         /// </summary>
         public string? BaselineId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the string set ID passed via navigation (query string).
+        /// </summary>
+        public string? SetId { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the DecayChartPage class.
@@ -30,9 +36,16 @@ namespace SonicDecay.App.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            if (!string.IsNullOrEmpty(BaselineId) && int.TryParse(BaselineId, out int id))
+            if (!string.IsNullOrEmpty(BaselineId) && int.TryParse(BaselineId, out int baselineId))
             {
-                await _viewModel.InitializeAsync(id);
+                if (!string.IsNullOrEmpty(SetId) && int.TryParse(SetId, out int setId))
+                {
+                    await _viewModel.InitializeAsync(baselineId, setId);
+                }
+                else
+                {
+                    await _viewModel.InitializeAsync(baselineId);
+                }
             }
         }
     }

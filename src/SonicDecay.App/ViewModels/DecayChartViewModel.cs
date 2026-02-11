@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Input;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
@@ -12,7 +13,8 @@ namespace SonicDecay.App.ViewModels
 {
     /// <summary>
     /// ViewModel for the decay trend chart page.
-    /// Displays time-series decay data with user-selectable metrics.
+    /// Displays time-series decay data with user-selectable metrics
+    /// and an inline string selector for switching between strings.
     /// </summary>
     public class DecayChartViewModel : BaseViewModel
     {
@@ -21,6 +23,7 @@ namespace SonicDecay.App.ViewModels
         private readonly IStringSetRepository _stringSetRepository;
 
         private int? _baselineId;
+        private int? _setId;
         private string _chartSubtitle = string.Empty;
         private bool _showDecayPercentage = true;
         private bool _showSpectralCentroid;
@@ -46,12 +49,16 @@ namespace SonicDecay.App.ViewModels
 
             Title = "Decay Trend";
 
+            // Initialize collections
+            StringSelectorItems = new ObservableCollection<StringSelectorItem>();
+
             // Initialize commands
             ToggleDecayCommand = new RelayCommand(ToggleDecay);
             ToggleCentroidCommand = new RelayCommand(ToggleCentroid);
             ToggleHfRatioCommand = new RelayCommand(ToggleHfRatio);
             RefreshCommand = new AsyncRelayCommand(LoadDataAsync);
             GoBackCommand = new AsyncRelayCommand(GoBackAsync);
+            SelectStringCommand = new AsyncRelayCommand<string>(SelectStringAsync);
 
             // Initialize chart series
             InitializeChartSeries();
@@ -167,6 +174,16 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public bool HasNoData => !HasData;
 
+        /// <summary>
+        /// Gets the string selector items for inline string switching.
+        /// </summary>
+        public ObservableCollection<StringSelectorItem> StringSelectorItems { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether string selector should be visible.
+        /// </summary>
+        public bool HasStringSelector => StringSelectorItems.Count > 0;
+
         #endregion
 
         #region Commands
@@ -196,17 +213,55 @@ namespace SonicDecay.App.ViewModels
         /// </summary>
         public ICommand GoBackCommand { get; }
 
+        /// <summary>
+        /// Command to select a different string from the string selector.
+        /// Accepts a string parameter ("1"-"6") from XAML CommandParameter.
+        /// </summary>
+        public ICommand SelectStringCommand { get; }
+
         #endregion
 
         #region Public Methods
 
         /// <summary>
+        /// Initializes the chart with data for the specified baseline and string set.
+        /// Loads the string selector for inline switching between strings.
+        /// </summary>
+        /// <param name="baselineId">The baseline ID to load data for.</param>
+        /// <param name="setId">The string set ID for loading all string baselines.</param>
+        public async Task InitializeAsync(int baselineId, int setId)
+        {
+            _baselineId = baselineId;
+            _setId = setId;
+            await LoadStringSelectorAsync(setId, baselineId);
+            await LoadContextSubtitleAsync(baselineId);
+            await LoadDataAsync();
+        }
+
+        /// <summary>
         /// Initializes the chart with data for the specified baseline.
+        /// Derives setId from the baseline for backward compatibility.
         /// </summary>
         /// <param name="baselineId">The baseline ID to load data for.</param>
         public async Task InitializeAsync(int baselineId)
         {
             _baselineId = baselineId;
+
+            // Derive setId from baseline for backward compat
+            try
+            {
+                var baseline = await _baselineRepository.GetByIdAsync(baselineId);
+                if (baseline != null)
+                {
+                    _setId = baseline.SetId;
+                    await LoadStringSelectorAsync(baseline.SetId, baselineId);
+                }
+            }
+            catch
+            {
+                // Non-critical — string selector just won't appear
+            }
+
             await LoadContextSubtitleAsync(baselineId);
             await LoadDataAsync();
         }
@@ -239,6 +294,86 @@ namespace SonicDecay.App.ViewModels
             catch
             {
                 // Non-critical, leave subtitle empty
+            }
+        }
+
+        /// <summary>
+        /// Loads all 6 string baselines for the set and populates StringSelectorItems.
+        /// </summary>
+        private async Task LoadStringSelectorAsync(int setId, int selectedBaselineId)
+        {
+            try
+            {
+                var baselines = await _baselineRepository.GetBySetIdAsync(setId);
+
+                StringSelectorItems.Clear();
+
+                for (int i = 1; i <= 6; i++)
+                {
+                    var baseline = baselines.FirstOrDefault(b => b.StringNumber == i);
+                    var hasBaseline = baseline?.InitialCentroid > 0;
+                    var hasMeasurements = false;
+
+                    if (hasBaseline && baseline != null)
+                    {
+                        var count = await _measurementLogRepository.GetCountByBaselineIdAsync(baseline.Id);
+                        hasMeasurements = count > 0;
+                    }
+
+                    var item = new StringSelectorItem(
+                        i,
+                        StringNoteNames[i - 1],
+                        hasBaseline,
+                        hasMeasurements,
+                        baseline?.Id == selectedBaselineId);
+
+                    StringSelectorItems.Add(item);
+                }
+
+                OnPropertyChanged(nameof(HasStringSelector));
+            }
+            catch
+            {
+                // Non-critical — string selector just won't appear
+            }
+        }
+
+        /// <summary>
+        /// Handles selecting a different string from the inline selector.
+        /// </summary>
+        private async Task SelectStringAsync(string? param)
+        {
+            if (param == null || !int.TryParse(param, out var stringNumber) || stringNumber < 1 || stringNumber > 6)
+                return;
+
+            if (_setId == null)
+                return;
+
+            // Find the baseline for this string
+            try
+            {
+                var baseline = await _baselineRepository.GetBySetIdAndStringNumberAsync(_setId.Value, stringNumber);
+
+                if (baseline == null || baseline.InitialCentroid <= 0)
+                {
+                    ShowError($"No baseline set for string {stringNumber}");
+                    return;
+                }
+
+                // Update selection state
+                _baselineId = baseline.Id;
+                foreach (var item in StringSelectorItems)
+                {
+                    item.IsSelected = item.StringNumber == stringNumber;
+                }
+
+                // Reload chart data
+                await LoadContextSubtitleAsync(baseline.Id);
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Failed to switch string: {ex.Message}");
             }
         }
 
@@ -401,5 +536,104 @@ namespace SonicDecay.App.ViewModels
         }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Represents a string option in the DecayChartPage string selector.
+    /// Tracks baseline/measurement state and selection for visual styling.
+    /// </summary>
+    public class StringSelectorItem : INotifyPropertyChanged
+    {
+        private bool _isSelected;
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Gets the string number (1-6).
+        /// </summary>
+        public int StringNumber { get; }
+
+        /// <summary>
+        /// Gets the note name (E1, B2, G3, D4, A5, E6).
+        /// </summary>
+        public string NoteName { get; }
+
+        /// <summary>
+        /// Gets whether this string has a baseline established.
+        /// </summary>
+        public bool HasBaseline { get; }
+
+        /// <summary>
+        /// Gets whether this string has measurement data.
+        /// </summary>
+        public bool HasMeasurements { get; }
+
+        /// <summary>
+        /// Gets or sets whether this string is currently selected.
+        /// </summary>
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusIcon)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the status icon:
+        /// ● = selected, ✓ = has measurements, ○ = baseline only, — = no baseline.
+        /// </summary>
+        public string StatusIcon
+        {
+            get
+            {
+                if (IsSelected) return "●";
+                if (HasMeasurements) return "✓";
+                if (HasBaseline) return "○";
+                return "—";
+            }
+        }
+
+        /// <summary>
+        /// Gets the status color based on string state.
+        /// </summary>
+        public Color StatusColor
+        {
+            get
+            {
+                if (!HasBaseline)
+                {
+                    // Muted for no baseline
+                    if (Application.Current?.Resources.TryGetValue("BaselineNotSet", out var notSet) == true && notSet is Color notSetColor)
+                        return notSetColor;
+                    return Colors.Gray;
+                }
+
+                if (Application.Current?.Resources.TryGetValue("BaselineEstablished", out var established) == true && established is Color estColor)
+                    return estColor;
+                return Colors.Green;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of StringSelectorItem.
+        /// </summary>
+        public StringSelectorItem(int stringNumber, string noteName, bool hasBaseline, bool hasMeasurements, bool isSelected)
+        {
+            StringNumber = stringNumber;
+            NoteName = noteName;
+            HasBaseline = hasBaseline;
+            HasMeasurements = hasMeasurements;
+            _isSelected = isSelected;
+        }
     }
 }

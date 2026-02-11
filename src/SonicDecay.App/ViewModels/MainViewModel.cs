@@ -1082,7 +1082,7 @@ namespace SonicDecay.App.ViewModels
                 return;
             }
 
-            await Shell.Current.GoToAsync($"DecayChartPage?baselineId={SelectedBaseline.Id}");
+            await Shell.Current.GoToAsync($"DecayChartPage?baselineId={SelectedBaseline.Id}&setId={SelectedStringSet!.Id}");
         }
 
         private async Task LoadGuitarsAsync()

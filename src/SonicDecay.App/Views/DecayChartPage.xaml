@@ -7,7 +7,7 @@
              x:DataType="vm:DecayChartViewModel"
              Title="{Binding Title}">
 
-    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="16">
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Padding="16">
 
         <!-- Chart Context Header -->
         <Label Grid.Row="0"
@@ -18,8 +18,109 @@
                Margin="0,0,0,8"
                IsVisible="{Binding ChartSubtitle, Converter={StaticResource StringNotEmptyConverter}}"/>
 
+        <!-- String Selector Bar -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*,*" ColumnSpacing="6" Margin="0,0,0,8"
+              IsVisible="{Binding HasStringSelector}">
+            <!-- String 1 (E1) -->
+            <Frame Grid.Column="0" Padding="6,8" CornerRadius="8"
+                   BorderColor="{Binding StringSelectorItems[0].StatusColor}"
+                   BackgroundColor="{Binding StringSelectorItems[0].IsSelected, Converter={StaticResource BoolToColorConverter}}">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectStringCommand}" CommandParameter="1"/>
+                </Frame.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding StringSelectorItems[0].StatusIcon}" FontSize="14"
+                           TextColor="{Binding StringSelectorItems[0].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding StringSelectorItems[0].NoteName}" FontSize="11" FontAttributes="Bold"
+                           TextColor="{Binding StringSelectorItems[0].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+            <!-- String 2 (B2) -->
+            <Frame Grid.Column="1" Padding="6,8" CornerRadius="8"
+                   BorderColor="{Binding StringSelectorItems[1].StatusColor}"
+                   BackgroundColor="{Binding StringSelectorItems[1].IsSelected, Converter={StaticResource BoolToColorConverter}}">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectStringCommand}" CommandParameter="2"/>
+                </Frame.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding StringSelectorItems[1].StatusIcon}" FontSize="14"
+                           TextColor="{Binding StringSelectorItems[1].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding StringSelectorItems[1].NoteName}" FontSize="11" FontAttributes="Bold"
+                           TextColor="{Binding StringSelectorItems[1].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+            <!-- String 3 (G3) -->
+            <Frame Grid.Column="2" Padding="6,8" CornerRadius="8"
+                   BorderColor="{Binding StringSelectorItems[2].StatusColor}"
+                   BackgroundColor="{Binding StringSelectorItems[2].IsSelected, Converter={StaticResource BoolToColorConverter}}">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectStringCommand}" CommandParameter="3"/>
+                </Frame.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding StringSelectorItems[2].StatusIcon}" FontSize="14"
+                           TextColor="{Binding StringSelectorItems[2].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding StringSelectorItems[2].NoteName}" FontSize="11" FontAttributes="Bold"
+                           TextColor="{Binding StringSelectorItems[2].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+            <!-- String 4 (D4) -->
+            <Frame Grid.Column="3" Padding="6,8" CornerRadius="8"
+                   BorderColor="{Binding StringSelectorItems[3].StatusColor}"
+                   BackgroundColor="{Binding StringSelectorItems[3].IsSelected, Converter={StaticResource BoolToColorConverter}}">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectStringCommand}" CommandParameter="4"/>
+                </Frame.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding StringSelectorItems[3].StatusIcon}" FontSize="14"
+                           TextColor="{Binding StringSelectorItems[3].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding StringSelectorItems[3].NoteName}" FontSize="11" FontAttributes="Bold"
+                           TextColor="{Binding StringSelectorItems[3].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+            <!-- String 5 (A5) -->
+            <Frame Grid.Column="4" Padding="6,8" CornerRadius="8"
+                   BorderColor="{Binding StringSelectorItems[4].StatusColor}"
+                   BackgroundColor="{Binding StringSelectorItems[4].IsSelected, Converter={StaticResource BoolToColorConverter}}">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectStringCommand}" CommandParameter="5"/>
+                </Frame.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding StringSelectorItems[4].StatusIcon}" FontSize="14"
+                           TextColor="{Binding StringSelectorItems[4].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding StringSelectorItems[4].NoteName}" FontSize="11" FontAttributes="Bold"
+                           TextColor="{Binding StringSelectorItems[4].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+            <!-- String 6 (E6) -->
+            <Frame Grid.Column="5" Padding="6,8" CornerRadius="8"
+                   BorderColor="{Binding StringSelectorItems[5].StatusColor}"
+                   BackgroundColor="{Binding StringSelectorItems[5].IsSelected, Converter={StaticResource BoolToColorConverter}}">
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding SelectStringCommand}" CommandParameter="6"/>
+                </Frame.GestureRecognizers>
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="2">
+                    <Label Text="{Binding StringSelectorItems[5].StatusIcon}" FontSize="14"
+                           TextColor="{Binding StringSelectorItems[5].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding StringSelectorItems[5].NoteName}" FontSize="11" FontAttributes="Bold"
+                           TextColor="{Binding StringSelectorItems[5].IsSelected, Converter={StaticResource BoolToTextColorConverter}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+
         <!-- Chart -->
-        <lvc:CartesianChart Grid.Row="1"
+        <lvc:CartesianChart Grid.Row="2"
                             Series="{Binding Series}"
                             XAxes="{Binding XAxes}"
                             YAxes="{Binding YAxes}"
@@ -31,7 +132,7 @@
         </lvc:CartesianChart>
 
         <!-- No Data Message -->
-        <Frame Grid.Row="1"
+        <Frame Grid.Row="2"
                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
                Padding="32"
                CornerRadius="16"
@@ -59,7 +160,7 @@
         </Frame>
 
         <!-- Metric Toggle Buttons -->
-        <Frame Grid.Row="2"
+        <Frame Grid.Row="3"
                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                Padding="12"
                CornerRadius="12"
@@ -139,7 +240,7 @@
         </Frame>
 
         <!-- Action Buttons -->
-        <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
+        <Grid Grid.Row="4" ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,16,0,0">
             <Button Text="Back"
                     Command="{Binding GoBackCommand}"
                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
@@ -157,7 +258,7 @@
         </Grid>
 
         <!-- Loading Overlay -->
-        <Frame Grid.RowSpan="4"
+        <Frame Grid.RowSpan="5"
                BackgroundColor="{AppThemeBinding Light=#80FFFFFF, Dark=#80000000}"
                IsVisible="{Binding IsBusy}"
                BorderColor="Transparent">
