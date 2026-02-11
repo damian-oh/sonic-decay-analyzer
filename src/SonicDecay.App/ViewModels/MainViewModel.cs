@@ -269,6 +269,7 @@ namespace SonicDecay.App.ViewModels
                 if (SetProperty(ref _selectedBaseline, value))
                 {
                     OnPropertyChanged(nameof(HasBaseline));
+                    OnPropertyChanged(nameof(ShowHealthCard));
                     OnPropertyChanged(nameof(BaselineStatus));
                     UpdateCommandStates();
                 }
@@ -320,6 +321,13 @@ namespace SonicDecay.App.ViewModels
         public bool HasBaseline => SelectedBaseline?.InitialCentroid > 0;
 
         /// <summary>
+        /// Gets a value indicating whether the health card should be visible.
+        /// Hidden during baseline capture and while success banner is shown
+        /// to prevent a meaningless ~0% decay reading.
+        /// </summary>
+        public bool ShowHealthCard => HasBaseline && !IsEstablishingBaseline && !BaselineSuccess;
+
+        /// <summary>
         /// Gets a description of the current baseline status.
         /// </summary>
         public string BaselineStatus => HasBaseline
@@ -338,6 +346,7 @@ namespace SonicDecay.App.ViewModels
                 if (SetProperty(ref _isEstablishingBaseline, value))
                 {
                     (CancelBaselineCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    OnPropertyChanged(nameof(ShowHealthCard));
                 }
             }
         }
@@ -349,7 +358,13 @@ namespace SonicDecay.App.ViewModels
         public bool BaselineSuccess
         {
             get => _baselineSuccess;
-            private set => SetProperty(ref _baselineSuccess, value);
+            private set
+            {
+                if (SetProperty(ref _baselineSuccess, value))
+                {
+                    OnPropertyChanged(nameof(ShowHealthCard));
+                }
+            }
         }
 
         /// <summary>
@@ -1249,10 +1264,13 @@ namespace SonicDecay.App.ViewModels
                         await MainThread.InvokeOnMainThreadAsync(async () =>
                         {
                             IsEstablishingBaseline = false;
-                            StatusMessage = "Baseline established successfully";
                             BaselineSuccess = true;
                             await LoadBaselineForStringAsync();
                             await UpdateAllBaselineStatusAsync();
+
+                            // Auto-stop capture after baseline is established
+                            await StopCaptureAsync();
+                            StatusMessage = "Baseline captured — capture stopped";
 
                             // Auto-dismiss success banner after 3 seconds
                             _ = DismissBaselineSuccessAsync();

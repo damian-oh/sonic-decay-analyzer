@@ -328,7 +328,7 @@
                        Padding="24"
                        CornerRadius="16"
                        BorderColor="Transparent"
-                       IsVisible="{Binding HasBaseline}">
+                       IsVisible="{Binding ShowHealthCard}">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="8">
                         <Label Text="{Binding DecayPercentage, StringFormat='{0:F1}%'}"
                                FontSize="48"
@@ -592,7 +592,7 @@
                        Padding="24"
                        CornerRadius="12"
                        BorderColor="Transparent"
-                       IsVisible="{Binding HasBaseline}">
+                       IsVisible="{Binding ShowHealthCard}">
                     <Frame.Triggers>
                         <DataTrigger TargetType="Frame" Binding="{Binding DecayHistory.Count, Converter={StaticResource IntToBoolConverter}}" Value="True">
                             <Setter Property="IsVisible" Value="False"/>
