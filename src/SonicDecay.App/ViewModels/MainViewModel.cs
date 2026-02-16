@@ -942,6 +942,8 @@ namespace SonicDecay.App.ViewModels
                 {
                     DecayHistory.Add(log);
                 }
+
+                UpdateCommandStates();
             }
             catch (Exception ex)
             {
