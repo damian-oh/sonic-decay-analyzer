@@ -1111,6 +1111,8 @@ namespace SonicDecay.App.ViewModels
 
         private async Task LoadPairingsForGuitarAsync()
         {
+            ClearAnalysisState();
+
             AvailablePairings.Clear();
             _selectedPairingItem = null;
             OnPropertyChanged(nameof(SelectedPairing));
@@ -1143,6 +1145,11 @@ namespace SonicDecay.App.ViewModels
                 {
                     _selectedPairingItem = activeDisplayItem;
                     OnPropertyChanged(nameof(SelectedPairing));
+                    await LoadStringSetFromPairingAsync();
+                }
+                else
+                {
+                    // No pairings exist — clear brand/set/baseline to prevent stale state
                     await LoadStringSetFromPairingAsync();
                 }
             }
@@ -1366,6 +1373,23 @@ namespace SonicDecay.App.ViewModels
                 ShowError(e.Message);
                 StatusMessage = "Capture error occurred";
             });
+        }
+
+        /// <summary>
+        /// Resets all real-time spectral analysis properties to defaults.
+        /// Called when switching guitars to prevent stale metrics from persisting.
+        /// </summary>
+        private void ClearAnalysisState()
+        {
+            CurrentCentroid = 0;
+            CurrentHfRatio = 0;
+            DecayPercentage = 0;
+            FundamentalFreq = 0;
+            RmsLevel = 0;
+            HealthStatus = "Unknown";
+            HealthColor = Colors.Gray;
+            Recommendation = null;
+            DecayHistory.Clear();
         }
 
         private void UpdateHealthIndicator()
