@@ -1080,12 +1080,12 @@ namespace SonicDecay.App.ViewModels
 
         private async Task NavigateToChartAsync()
         {
-            if (SelectedBaseline == null)
+            if (SelectedBaseline == null || SelectedStringSet == null)
             {
                 return;
             }
 
-            await Shell.Current.GoToAsync($"DecayChartPage?baselineId={SelectedBaseline.Id}&setId={SelectedStringSet!.Id}");
+            await Shell.Current.GoToAsync($"DecayChartPage?baselineId={SelectedBaseline.Id}&setId={SelectedStringSet.Id}");
         }
 
         private async Task LoadGuitarsAsync()
