@@ -1246,6 +1246,12 @@ namespace SonicDecay.App.ViewModels
                 return;
             }
 
+            // Prevent concurrent analysis from rapid successive buffer events
+            if (IsAnalyzing)
+            {
+                return;
+            }
+
             // Run analysis on background thread
             _ = ProcessBufferAsync(e.Buffer);
         }
