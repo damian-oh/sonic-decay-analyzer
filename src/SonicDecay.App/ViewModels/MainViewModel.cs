@@ -990,6 +990,7 @@ namespace SonicDecay.App.ViewModels
 
             // Start 30-second timeout
             _baselineTimeoutCts?.Cancel();
+            _baselineTimeoutCts?.Dispose();
             _baselineTimeoutCts = new CancellationTokenSource();
             var token = _baselineTimeoutCts.Token;
 
@@ -1481,6 +1482,9 @@ namespace SonicDecay.App.ViewModels
             {
                 _ = _audioCaptureService.StopCaptureAsync();
             }
+
+            // Dispose cancellation token source
+            _baselineTimeoutCts?.Dispose();
 
             // Unsubscribe from events
             _audioCaptureService.BufferCaptured -= OnBufferCaptured;
