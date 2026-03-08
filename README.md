@@ -6,7 +6,7 @@ A data-driven predictive maintenance tool for guitarists that quantifies instrum
 
 **Version**: 1.0 (Feature Complete)
 **Platform**: .NET MAUI (Windows, Android, iOS, macOS)
-**License**: Proprietary
+**License**: MIT
 
 ## Overview
 
@@ -62,8 +62,8 @@ SonicDecayAnalyzer/
 │   │   ├── Models/              # 5 entity classes
 │   │   ├── ViewModels/          # 9 MVVM view models
 │   │   ├── Views/               # 8 XAML pages
-│   │   ├── Services/            # 13 service interfaces + implementations
-│   │   ├── Converters/          # 15 value converters
+│   │   ├── Services/            # 14 service interfaces + implementations
+│   │   ├── Converters/          # 14 value converters
 │   │   └── Platforms/           # Platform-specific audio capture
 │   │
 │   └── SonicDecay.Engine/       # Python reference implementation
@@ -132,8 +132,11 @@ This project is built upon a fusion of:
 ## Documentation
 
 - **CLAUDE.md**: Complete technical specification and architectural contract
-- **docs/**: Additional technical documentation (in development)
+- **docs/**: Technical documentation
+  - `database-schema.md` - SQLite schema reference
+  - `standards.md` - Coding conventions and architecture
+  - `commit-message-guide.md` - Commit message format
 
 ---
 
-*Last Updated: 2026-01-31*
+*Last Updated: 2026-03-08*
